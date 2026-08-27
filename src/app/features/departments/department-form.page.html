@@ -1,0 +1,52 @@
+<div class="ui-page-header">
+  <h1 class="ui-page-title">{{ isEdit() ? 'Editar departamento' : 'Nuevo departamento' }}</h1>
+</div>
+
+<div class="ui-panel ui-panel--padded ui-panel--form">
+  @if (isEdit() && existing.isLoading()) {
+    <p class="ui-table__loading">Cargando…</p>
+  } @else {
+    @if (serverError(); as message) {
+      <p class="ui-form-error" role="alert">{{ message }}</p>
+    }
+
+    <form class="ui-form" (submit)="onSubmit(); $event.preventDefault()" novalidate>
+      <ui-field
+        for="name"
+        label="Nombre"
+        [invalid]="departmentForm.name().touched() && departmentForm.name().invalid()"
+        [error]="fieldError(departmentForm.name())"
+      >
+        <input id="name" type="text" class="ui-input" [formField]="departmentForm.name" />
+      </ui-field>
+
+      <ui-field
+        for="code"
+        label="Código"
+        hint="Identificador corto y estable, ej. RAD. No se reutiliza tras eliminarlo."
+        [invalid]="departmentForm.code().touched() && departmentForm.code().invalid()"
+        [error]="fieldError(departmentForm.code())"
+      >
+        <input id="code" type="text" class="ui-input" [formField]="departmentForm.code" />
+      </ui-field>
+
+      <ui-field for="description" label="Descripción (opcional)">
+        <textarea id="description" class="ui-input" rows="3" [formField]="departmentForm.description"></textarea>
+      </ui-field>
+
+      @if (isEdit()) {
+        <label class="ui-checkbox-row">
+          <input type="checkbox" [formField]="departmentForm.isActive" />
+          Activo
+        </label>
+      }
+
+      <div class="ui-form-actions">
+        <ui-button type="submit" [loading]="submitting()" [disabled]="departmentForm().invalid()">
+          {{ isEdit() ? 'Guardar cambios' : 'Crear departamento' }}
+        </ui-button>
+        <ui-button type="button" variant="ghost" routerLink="/departamentos">Cancelar</ui-button>
+      </div>
+    </form>
+  }
+</div>

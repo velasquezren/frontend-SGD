@@ -1,0 +1,164 @@
+// =============================================================================
+// ADMIN SCREEN PRIMITIVES — global, token-only classes shared by every
+// list/form page (departments, roles, permissions, users, ...). Same
+// reasoning as `_forms.scss`: these are plain building blocks, not
+// components, because there's no per-instance behavior to encapsulate.
+// =============================================================================
+
+.ui-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-block-end: var(--space-5);
+}
+
+.ui-page-title {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.ui-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+}
+
+.ui-panel {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.ui-panel--padded {
+  padding: var(--space-5);
+
+  @media (min-width: 48rem) {
+    padding: var(--space-6);
+  }
+}
+
+/** Width caps for a form's `.ui-panel` — replaces one-off inline `style="max-inline-size: ..."`. */
+.ui-panel--form {
+  max-inline-size: 32rem;
+}
+
+.ui-panel--form-wide {
+  max-inline-size: 40rem;
+}
+
+.ui-table-wrap {
+  overflow-x: auto;
+}
+
+.ui-table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+
+  th,
+  td {
+    text-align: start;
+    padding: var(--space-3) var(--space-4);
+    border-block-end: 1px solid var(--color-border);
+    white-space: nowrap;
+  }
+
+  th {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-muted);
+    background-color: var(--color-surface-subtle);
+  }
+
+  tbody tr:hover {
+    background-color: var(--color-surface-subtle);
+  }
+
+  tbody tr:last-child td {
+    border-block-end: none;
+  }
+}
+
+.ui-table__actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.ui-table__empty,
+.ui-table__loading,
+.ui-table__error {
+  padding: var(--space-7) var(--space-4);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.ui-table__error {
+  color: var(--color-danger);
+}
+
+.ui-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.ui-form-error {
+  background-color: var(--color-danger-subtle);
+  color: var(--color-danger);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  margin: 0 0 var(--space-5);
+}
+
+.ui-form-success {
+  background-color: var(--color-success-subtle);
+  color: var(--color-success);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  margin: 0 0 var(--space-5);
+}
+
+.ui-form-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-block-start: var(--space-6);
+}
+
+.ui-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.ui-checkbox-group__section-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-2);
+}
+
+.ui-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}

@@ -1,0 +1,84 @@
+<div class="ui-page-header">
+  <h1 class="ui-page-title">Usuarios</h1>
+  @if (authService.hasPermission(PERMISSIONS.users.create)) {
+    <ui-button routerLink="/usuarios/nuevo">Nuevo usuario</ui-button>
+  }
+</div>
+
+<div class="ui-toolbar">
+  <input
+    #searchInput
+    class="ui-input ui-search-input"
+    type="search"
+    placeholder="Buscar por nombre o correo…"
+    [value]="searchTerm()"
+    (input)="onSearchInput(searchInput.value)"
+  />
+</div>
+
+<div class="ui-panel">
+  <div class="ui-table-wrap">
+    <table class="ui-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Correo</th>
+          <th>Departamento</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (usersResource.isLoading()) {
+          <tr>
+            <td colspan="6" class="ui-table__loading">Cargando…</td>
+          </tr>
+        } @else if (usersResource.error()) {
+          <tr>
+            <td colspan="6" class="ui-table__error">No se pudo cargar la lista de usuarios.</td>
+          </tr>
+        } @else if (usersResource.value(); as result) {
+          @if (!result.items.length) {
+            <tr>
+              <td colspan="6" class="ui-table__empty">
+                @if (searchTerm()) {
+                  No hay usuarios que coincidan con "{{ searchTerm() }}".
+                } @else {
+                  Todavía no hay usuarios cargados.
+                }
+              </td>
+            </tr>
+          }
+          @for (user of result.items; track user.id) {
+            <tr>
+              <td>{{ user.firstName }} {{ user.lastName }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.departmentId ? (departmentNameById().get(user.departmentId) ?? '—') : '—' }}</td>
+              <td>
+                <ui-badge [variant]="roleBadgeVariant(user.role)">{{ roleLabel(user.role) }}</ui-badge>
+              </td>
+              <td>
+                <ui-badge [variant]="user.isActive ? 'success' : 'neutral'">
+                  {{ user.isActive ? 'Activo' : 'Inactivo' }}
+                </ui-badge>
+              </td>
+              <td class="ui-table__actions">
+                @if (authService.hasPermission(PERMISSIONS.users.update)) {
+                  <ui-button variant="ghost" size="sm" [routerLink]="['/usuarios', user.id]">Editar</ui-button>
+                }
+                @if (authService.hasPermission(PERMISSIONS.users.delete)) {
+                  <ui-button variant="ghost" size="sm" (click)="onDelete(user)">Eliminar</ui-button>
+                }
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (usersResource.value(); as result) {
+    <ui-pagination [meta]="result.meta" (pageChange)="page.set($event)" />
+  }
+</div>

@@ -1,0 +1,134 @@
+@use 'mixins' as m;
+
+.dashboard-intro {
+  max-inline-size: 42rem;
+  color: var(--color-text-muted);
+  line-height: var(--line-height-relaxed);
+  margin: 0 0 var(--space-6);
+}
+
+// An ordered list, not a generic grid — this genuinely is a sequence
+// (the natural setup order), not decoration. See the doc-comment on
+// `STEPS` in dashboard.page.ts.
+.dashboard-flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  @include m.respond-to('lg') {
+    flex-direction: row;
+    align-items: stretch;
+  }
+}
+
+.dashboard-flow__item {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+
+  @include m.respond-to('lg') {
+    flex-direction: row;
+    flex: 1;
+    align-items: center;
+  }
+}
+
+.dashboard-flow__arrow {
+  align-self: center;
+  color: var(--color-border-strong);
+  font-size: var(--font-size-lg);
+  transform: rotate(90deg);
+
+  @include m.respond-to('lg') {
+    transform: none;
+    flex-shrink: 0;
+  }
+}
+
+.dashboard-flow__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+  padding: var(--space-5);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+
+  &:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}
+
+.dashboard-flow__card--done {
+  border-color: var(--color-success);
+}
+
+.dashboard-flow__card--next {
+  border-color: var(--color-primary);
+  border-width: 2px;
+  box-shadow: var(--shadow-md);
+}
+
+.dashboard-flow__index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  margin-block-end: var(--space-2);
+
+  .dashboard-flow__card--done & {
+    background-color: var(--color-success);
+    color: var(--color-on-success);
+  }
+
+  .dashboard-flow__card--next & {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+}
+
+.dashboard-flow__label {
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+
+.dashboard-flow__count {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.dashboard-flow__description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.dashboard-flow__cta {
+  margin-block-start: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+}

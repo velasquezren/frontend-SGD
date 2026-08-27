@@ -1,0 +1,61 @@
+<div class="login-layout">
+  <aside class="login-brand">
+    <div class="login-brand__content">
+      <p class="login-brand__eyebrow">Clínica Montalvo</p>
+      <h1 class="login-brand__wordmark">MONTALVO</h1>
+      <span class="login-brand__rule" aria-hidden="true"></span>
+      <p class="login-brand__tagline">Sistema de Gestión Documental</p>
+    </div>
+    <p class="login-brand__notice">Acceso interno — uso exclusivo del personal autorizado de la clínica.</p>
+  </aside>
+
+  <main class="login-panel">
+    <div class="login-panel__content">
+      <p class="login-panel__eyebrow">Bienvenido de nuevo</p>
+      <h2 class="login-panel__title">Iniciar sesión</h2>
+
+      @if (serverError(); as message) {
+        <p class="ui-form-error" role="alert">{{ message }}</p>
+      }
+
+      <form class="ui-form" (submit)="onSubmit(); $event.preventDefault()" novalidate>
+        <ui-field
+          for="email"
+          label="Correo electrónico"
+          [invalid]="loginForm.email().touched() && loginForm.email().invalid()"
+          [error]="fieldError(loginForm.email())"
+        >
+          <input id="email" type="email" class="ui-input" autocomplete="email" [formField]="loginForm.email" />
+        </ui-field>
+
+        <ui-field
+          for="password"
+          label="Contraseña"
+          [invalid]="loginForm.password().touched() && loginForm.password().invalid()"
+          [error]="fieldError(loginForm.password())"
+        >
+          <input
+            id="password"
+            type="password"
+            class="ui-input"
+            autocomplete="current-password"
+            [formField]="loginForm.password"
+          />
+        </ui-field>
+
+        <ui-button
+          type="submit"
+          variant="primary"
+          size="lg"
+          [fullWidth]="true"
+          [loading]="submitting()"
+          [disabled]="loginForm().invalid()"
+        >
+          Iniciar sesión
+        </ui-button>
+      </form>
+
+      <p class="login-panel__help">¿Olvidaste tu contraseña? Contactá al equipo de Sistemas.</p>
+    </div>
+  </main>
+</div>

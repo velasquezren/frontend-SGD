@@ -13,6 +13,12 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
  */
 @Component({
   selector: 'ui-button',
+  host: {
+    // :host is `display: inline-block` by default (see button.scss); a
+    // full-width button needs its host to actually take up the row too,
+    // not just the inner <button> element.
+    '[class.ui-button-host--full]': 'fullWidth()',
+  },
   template: `
     <button
       class="ui-button"
@@ -35,8 +41,9 @@ export class UiButton {
   readonly disabled = input(false);
   readonly loading = input(false);
   readonly type = input<'button' | 'submit' | 'reset'>('button');
+  readonly fullWidth = input(false);
 
   protected readonly classes = computed(
-    () => `ui-button--${this.variant()} ui-button--${this.size()}`,
+    () => `ui-button--${this.variant()} ui-button--${this.size()}${this.fullWidth() ? ' ui-button--full' : ''}`,
   );
 }

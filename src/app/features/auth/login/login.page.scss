@@ -1,0 +1,150 @@
+@use 'mixins' as m;
+
+// -----------------------------------------------------------------------------
+// Asymmetric split layout: a brand panel with real presence (not a logo
+// above a floating card) next to a left-aligned form panel. Collapses to a
+// stacked, brand-band-on-top layout below `md`. See DESIGN_SYSTEM.md for the
+// token values referenced throughout — nothing here is a hardcoded value.
+// -----------------------------------------------------------------------------
+
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+.login-layout {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr;
+  animation: login-rise var(--duration-slow) var(--ease-emphasized);
+
+  @include m.respond-to('md') {
+    grid-template-columns: minmax(20rem, 0.85fr) 1fr;
+  }
+}
+
+@keyframes login-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Brand panel
+// ---------------------------------------------------------------------------
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-6);
+  padding: var(--space-6) var(--space-5);
+  color: var(--color-on-primary);
+  // Faint horizontal rule pattern — a nod to ruled chart/index-card paper,
+  // the actual material this system organizes — under a soft brand gradient.
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-on-primary) 6%, transparent) 0,
+      color-mix(in srgb, var(--color-on-primary) 6%, transparent) 1px,
+      transparent 1px,
+      transparent 28px
+    ),
+    linear-gradient(155deg, var(--color-primary-600), var(--color-primary-800) 85%);
+
+  @include m.respond-to('md') {
+    padding: var(--space-8) var(--space-7);
+  }
+}
+
+.login-brand__eyebrow {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-on-primary) 78%, transparent);
+  margin: 0 0 var(--space-4);
+}
+
+.login-brand__wordmark {
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-3xl);
+  letter-spacing: var(--tracking-wide);
+  margin: 0;
+
+  @include m.respond-to('md') {
+    font-size: var(--font-size-4xl);
+  }
+}
+
+.login-brand__rule {
+  display: block;
+  inline-size: 2.5rem;
+  block-size: 3px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-secondary);
+  margin: var(--space-4) 0;
+}
+
+.login-brand__tagline {
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  color: color-mix(in srgb, var(--color-on-primary) 92%, transparent);
+  max-inline-size: 22ch;
+}
+
+.login-brand__notice {
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-relaxed);
+  color: color-mix(in srgb, var(--color-on-primary) 78%, transparent);
+  max-inline-size: 32ch;
+}
+
+// ---------------------------------------------------------------------------
+// Form panel
+// ---------------------------------------------------------------------------
+.login-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) var(--space-5);
+  background-color: var(--color-surface);
+
+  @include m.respond-to('md') {
+    padding: var(--space-8);
+  }
+}
+
+.login-panel__content {
+  inline-size: 100%;
+  max-inline-size: 24rem;
+}
+
+.login-panel__eyebrow {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-accent-text);
+  margin: 0 0 var(--space-2);
+}
+
+.login-panel__title {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-6);
+}
+
+.login-panel__help {
+  margin: var(--space-5) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}

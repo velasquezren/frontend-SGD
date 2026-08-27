@@ -1,0 +1,91 @@
+<div class="ui-page-header">
+  <h1 class="ui-page-title">{{ isEdit() ? 'Editar usuario' : 'Nuevo usuario' }}</h1>
+</div>
+
+<div class="ui-panel ui-panel--padded ui-panel--form-wide">
+  @if (isEdit() && existing.isLoading()) {
+    <p class="ui-table__loading">Cargando…</p>
+  } @else {
+    @if (serverError(); as message) {
+      <p class="ui-form-error" role="alert">{{ message }}</p>
+    }
+
+    <form class="ui-form" (submit)="onSubmit(); $event.preventDefault()" novalidate>
+      <ui-field
+        for="email"
+        label="Correo electrónico"
+        [invalid]="userForm.email().touched() && userForm.email().invalid()"
+        [error]="fieldError(userForm.email())"
+      >
+        <input id="email" type="email" class="ui-input" autocomplete="email" [formField]="userForm.email" />
+      </ui-field>
+
+      @if (!isEdit()) {
+        <ui-field
+          for="password"
+          label="Contraseña"
+          hint="Mínimo 8 caracteres. La persona puede iniciar sesión de inmediato con esta contraseña."
+          [invalid]="userForm.password().touched() && userForm.password().invalid()"
+          [error]="fieldError(userForm.password())"
+        >
+          <input
+            id="password"
+            type="password"
+            class="ui-input"
+            autocomplete="new-password"
+            [formField]="userForm.password"
+          />
+        </ui-field>
+      }
+
+      <ui-field
+        for="firstName"
+        label="Nombre"
+        [invalid]="userForm.firstName().touched() && userForm.firstName().invalid()"
+        [error]="fieldError(userForm.firstName())"
+      >
+        <input id="firstName" type="text" class="ui-input" [formField]="userForm.firstName" />
+      </ui-field>
+
+      <ui-field
+        for="lastName"
+        label="Apellido"
+        [invalid]="userForm.lastName().touched() && userForm.lastName().invalid()"
+        [error]="fieldError(userForm.lastName())"
+      >
+        <input id="lastName" type="text" class="ui-input" [formField]="userForm.lastName" />
+      </ui-field>
+
+      <ui-field for="departmentId" label="Departamento (opcional)">
+        <select id="departmentId" class="ui-input" [formField]="userForm.departmentId">
+          <option value="">Sin departamento</option>
+          @for (department of departmentsResource.value(); track department.id) {
+            <option [value]="department.id">{{ department.name }}</option>
+          }
+        </select>
+      </ui-field>
+
+      <ui-field for="role" label="Rol">
+        <select id="role" class="ui-input" [formField]="userForm.role">
+          @for (role of roles; track role) {
+            <option [value]="role">{{ roleLabel(role) }}</option>
+          }
+        </select>
+      </ui-field>
+
+      @if (isEdit()) {
+        <label class="ui-checkbox-row">
+          <input type="checkbox" [formField]="userForm.isActive" />
+          Activo
+        </label>
+      }
+
+      <div class="ui-form-actions">
+        <ui-button type="submit" [loading]="submitting()" [disabled]="userForm().invalid()">
+          {{ isEdit() ? 'Guardar cambios' : 'Crear usuario' }}
+        </ui-button>
+        <ui-button type="button" variant="ghost" routerLink="/usuarios">Cancelar</ui-button>
+      </div>
+    </form>
+  }
+</div>

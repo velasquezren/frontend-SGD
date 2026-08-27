@@ -87,3 +87,51 @@ Hard rules:
   invent or reference a logo file that hasn't been added under `public/`.
 - Dark mode is not enabled. Do not add a `prefers-color-scheme: dark`
   override without first reviewing contrast per `DESIGN_SYSTEM.md` §8.
+
+## Application architecture (established patterns — follow, don't reinvent)
+
+Talks to the NestJS backend documented in `../backend/docs/ARCHITECTURE.md`.
+Every feature module (`departments`, `users`, `documents`) follows the same
+shape — copy `features/departments/` for a new one, not
+`features/documents/` (it has two extra, module-specific mechanics:
+multipart upload and blob download/preview). There is no `features/roles/`
+— roles are a fixed set (`core/auth/roles.ts`), picked as a plain field on
+the Usuarios form, not their own resource. See
+`../backend/docs/adr/0005-fixed-roles.md` before assuming a "Roles" screen
+should exist.
+
+```
+features/<name>/
+  <name>.models.ts     // types mirroring the backend's DTOs/entities
+  <name>.service.ts    // HttpClient, one method per endpoint, ApiResponse<T> unwrapped
+  <name>-list.page.ts  // resource() + debounced search + ui-pagination + permission-gated actions
+  <name>-form.page.ts  // one component for create AND edit — route :id === 'nuevo' means create
+```
+
+- **Auth/permissions**: `core/auth/auth.service.ts` (session signals,
+  `hasPermission()`), `core/auth/permissions.ts` (typed mirror of the
+  backend's permission catalog — keep in sync by hand), `core/auth/auth.guard.ts`
+  (`authGuard`/`guestGuard`), `core/http/auth.interceptor.ts` (attaches the
+  token, clears session on 401).
+- **Forms**: Signal Forms (`@angular/forms/signals`) for every validated
+  field, including `role` (`<select [formField]="userForm.role">` — it's
+  just a fixed-option string field, see `core/auth/roles.ts`). The one
+  thing Signal Forms can't do — a file input — is a plain signal toggled
+  by hand instead (`documents/document-form.page.ts`'s `selectedFile`),
+  never `[formField]`; the same technique applies if a future field needs
+  to bind an array (Signal Forms checkboxes only bind to `boolean`, never
+  `string[]`). Edit-mode prefill uses `linkedSignal()` off a `resource()`,
+  not a manual `effect()`.
+- **Feedback**: `core/notifications/toast.service.ts`
+  (`success`/`error`/`info`, `<app-toast-viewport>` mounted once in
+  `app.html`) for one-shot outcomes; `core/dialogs/confirm.service.ts`
+  (`await confirmService.confirm({...})`, `<app-confirm-dialog-host>` also
+  in `app.html`) instead of the browser's native `confirm()`. Both build on
+  `shared/ui/modal/modal.ts`, the one modal primitive — a new dialog-style
+  UI reuses `ui-modal`, it doesn't roll its own overlay.
+- **Errors**: `core/http/api-error.util.ts` (`toApiErrorMessage`) turns a
+  failed `HttpClient` call into the backend's actual validation message —
+  every service/form catch block uses it instead of a generic string.
+- **Layout**: `layout/app-shell/` is the parent route for everything
+  authenticated (sidebar nav items are permission-gated, same list drives
+  the dashboard cards in `features/dashboard/`).

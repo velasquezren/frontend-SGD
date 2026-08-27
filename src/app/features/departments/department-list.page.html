@@ -1,0 +1,80 @@
+<div class="ui-page-header">
+  <h1 class="ui-page-title">Departamentos</h1>
+  @if (authService.hasPermission(PERMISSIONS.departments.create)) {
+    <ui-button routerLink="/departamentos/nuevo">Nuevo departamento</ui-button>
+  }
+</div>
+
+<div class="ui-toolbar">
+  <input
+    #searchInput
+    class="ui-input ui-search-input"
+    type="search"
+    placeholder="Buscar por nombre…"
+    [value]="searchTerm()"
+    (input)="onSearchInput(searchInput.value)"
+  />
+</div>
+
+<div class="ui-panel">
+  <div class="ui-table-wrap">
+    <table class="ui-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Código</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (departmentsResource.isLoading()) {
+          <tr>
+            <td colspan="4" class="ui-table__loading">Cargando…</td>
+          </tr>
+        } @else if (departmentsResource.error()) {
+          <tr>
+            <td colspan="4" class="ui-table__error">No se pudo cargar la lista de departamentos.</td>
+          </tr>
+        } @else if (departmentsResource.value(); as result) {
+          @if (!result.items.length) {
+            <tr>
+              <td colspan="4" class="ui-table__empty">
+                @if (searchTerm()) {
+                  No hay departamentos que coincidan con "{{ searchTerm() }}".
+                } @else {
+                  Todavía no hay departamentos cargados.
+                }
+              </td>
+            </tr>
+          }
+          @for (department of result.items; track department.id) {
+            <tr>
+              <td>{{ department.name }}</td>
+              <td>{{ department.code }}</td>
+              <td>
+                <ui-badge [variant]="department.isActive ? 'success' : 'neutral'">
+                  {{ department.isActive ? 'Activo' : 'Inactivo' }}
+                </ui-badge>
+              </td>
+              <td class="ui-table__actions">
+                @if (authService.hasPermission(PERMISSIONS.departments.update)) {
+                  <ui-button variant="ghost" size="sm" [routerLink]="['/departamentos', department.id]">
+                    Editar
+                  </ui-button>
+                }
+                @if (authService.hasPermission(PERMISSIONS.departments.delete)) {
+                  <ui-button variant="ghost" size="sm" (click)="onDelete(department)">Eliminar</ui-button>
+                }
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (departmentsResource.value(); as result) {
+    <ui-pagination [meta]="result.meta" (pageChange)="page.set($event)" />
+  }
+</div>

@@ -1,0 +1,100 @@
+// =============================================================================
+// FORM PRIMITIVES — global, token-only classes for native form controls.
+//
+// Signal Forms (@angular/forms/signals) binds `[formField]` directly to the
+// native <input>/<select> element (see the Angular Signal Forms guide) —
+// there is no value-accessor wrapper component the way there was with
+// Reactive Forms. So instead of a `ui-input` *component*, the design system
+// exposes plain, global, tokens-only classes applied straight to the native
+// control. `shared/ui/field/` provides the surrounding label/error
+// scaffolding as a real component (see DESIGN_SYSTEM.md §7).
+// =============================================================================
+@use 'mixins' as m;
+
+.ui-label {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  margin-block-end: var(--space-2);
+}
+
+.ui-input {
+  display: block;
+  inline-size: 100%;
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-3);
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+
+  &::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-neutral-400);
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+    border-color: var(--color-primary);
+  }
+
+  &:disabled {
+    background-color: var(--color-surface-muted);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+  }
+
+  // Signal Forms marks an invalid+touched control via [formField] — style
+  // through the field wrapper's `.ui-field--invalid` state instead of a
+  // pseudo-class, since "invalid" here is form validation state, not the
+  // browser's native :invalid (which fires before the user's even typed).
+  .ui-field--invalid & {
+    border-color: var(--color-danger);
+  }
+}
+
+/** A `.ui-input` used as a standalone list search box — replaces one-off inline `style="max-inline-size: 20rem"`. */
+.ui-search-input {
+  max-inline-size: 20rem;
+}
+
+.ui-field {
+  display: flex;
+  flex-direction: column;
+}
+
+/** Vertical field stack shared by every form page (login, department/role/user forms, ...). */
+.ui-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+textarea.ui-input {
+  resize: vertical;
+  min-block-size: 5rem;
+}
+
+.ui-field__hint,
+.ui-field__error {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-sm);
+}
+
+.ui-field__hint {
+  color: var(--color-text-muted);
+}
+
+.ui-field__error {
+  color: var(--color-danger);
+}

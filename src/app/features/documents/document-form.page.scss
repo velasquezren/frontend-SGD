@@ -1,0 +1,53 @@
+@use 'mixins' as m;
+
+.dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  border: 2px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-subtle);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
+}
+
+.dropzone:hover {
+  border-color: var(--color-primary);
+}
+
+.dropzone--active {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-subtle);
+}
+
+.dropzone--filled {
+  border-style: solid;
+  border-color: var(--color-primary);
+}
+
+.dropzone__file-name {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  word-break: break-all;
+}
+
+.dropzone__hint {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+// Visually hidden, not display:none — stays in the a11y tree and reachable
+// by Tab. The dropzone's own (click) triggers it programmatically
+// (`fileInput.click()`); this isn't a click/drop target itself.
+.dropzone__input {
+  @include m.visually-hidden;
+}

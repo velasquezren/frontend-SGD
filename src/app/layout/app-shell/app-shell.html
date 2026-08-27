@@ -1,0 +1,34 @@
+<div class="shell">
+  <a class="skip-link" href="#shell-main">Saltar al contenido</a>
+
+  <aside class="shell__sidebar">
+    <a class="shell__brand" routerLink="/" aria-label="Ir al inicio">
+      <span class="shell__wordmark">MONTALVO</span>
+      <span class="shell__wordmark-sub">SGD</span>
+    </a>
+
+    <nav class="shell__nav" aria-label="Principal">
+      @for (item of visibleNavItems(); track item.path) {
+        <a class="shell__nav-link" [routerLink]="item.path" routerLinkActive="shell__nav-link--active">
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+  </aside>
+
+  <div class="shell__body">
+    <header class="shell__topbar">
+      @if (authService.user(); as user) {
+        <div class="shell__user">
+          <span class="shell__user-name">{{ user.firstName }} {{ user.lastName }}</span>
+          <span class="shell__user-email">{{ user.email }}</span>
+        </div>
+      }
+      <ui-button variant="ghost" size="sm" (click)="onLogout()">Cerrar sesión</ui-button>
+    </header>
+
+    <main id="shell-main" class="shell__content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

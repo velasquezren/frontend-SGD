@@ -1,0 +1,42 @@
+<div class="ui-page-header">
+  <h1 class="ui-page-title">
+    @if (authService.user(); as user) {
+      Hola, {{ user.firstName }}
+    }
+  </h1>
+</div>
+
+<p class="dashboard-intro">
+  Este es el orden recomendado para dejar el sistema listo: organizá la clínica en departamentos, definí roles y qué
+  puede hacer cada uno, cargá al personal, y empezá a subir documentos.
+</p>
+
+<ol class="dashboard-flow">
+  @for (step of visibleSteps(); track step.path; let isLast = $last) {
+    <li class="dashboard-flow__item">
+      <a
+        class="dashboard-flow__card"
+        [class.dashboard-flow__card--done]="statusFor(step) === 'done'"
+        [class.dashboard-flow__card--next]="statusFor(step) === 'next'"
+        [routerLink]="step.path"
+      >
+        <span class="dashboard-flow__index">
+          @if (statusFor(step) === 'done') {
+            ✓
+          } @else {
+            {{ step.order }}
+          }
+        </span>
+        <span class="dashboard-flow__label">{{ step.label }}</span>
+        <span class="dashboard-flow__count">{{ countFor(step.path) }} {{ step.unit }}</span>
+        <span class="dashboard-flow__description">{{ step.description }}</span>
+        @if (statusFor(step) === 'next') {
+          <span class="dashboard-flow__cta">Continuar →</span>
+        }
+      </a>
+      @if (!isLast) {
+        <span class="dashboard-flow__arrow" aria-hidden="true">→</span>
+      }
+    </li>
+  }
+</ol>

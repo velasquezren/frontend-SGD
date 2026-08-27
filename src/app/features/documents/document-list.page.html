@@ -1,0 +1,190 @@
+<div class="ui-page-header">
+  <h1 class="ui-page-title">Documentos</h1>
+  @if (authService.hasPermission(PERMISSIONS.documents.create)) {
+    <ui-button routerLink="/documentos/nuevo" [queryParams]="currentFolderId() ? { folderId: currentFolderId() } : {}">
+      Subir documento
+    </ui-button>
+  }
+</div>
+
+<nav class="folder-breadcrumb" aria-label="Ruta de carpetas">
+  <button
+    type="button"
+    class="folder-breadcrumb__item"
+    [class.folder-breadcrumb__item--current]="!currentFolderId()"
+    [disabled]="!currentFolderId()"
+    (click)="goToRoot()"
+  >
+    Documentos
+  </button>
+  @for (folder of breadcrumb(); track folder.id; let isLast = $last) {
+    <span class="folder-breadcrumb__sep" aria-hidden="true">/</span>
+    <button
+      type="button"
+      class="folder-breadcrumb__item"
+      [class.folder-breadcrumb__item--current]="isLast"
+      [disabled]="isLast"
+      (click)="openFolder(folder)"
+    >
+      {{ folder.name }}
+    </button>
+  }
+</nav>
+
+<div class="folder-panel">
+  <div class="folder-panel__header">
+    <span class="folder-panel__title">Carpetas</span>
+    @if (authService.hasPermission(PERMISSIONS.folders.create)) {
+      <ui-button variant="ghost" size="sm" (click)="openNewFolderModal()">+ Nueva carpeta</ui-button>
+    }
+  </div>
+
+  @if (foldersResource.isLoading()) {
+    <p class="folder-panel__empty">Cargando carpetas…</p>
+  } @else if (subfolders().length) {
+    <div class="folder-grid">
+      @for (folder of subfolders(); track folder.id) {
+        <div class="folder-tile">
+          <button type="button" class="folder-tile__button" (click)="openFolder(folder)">
+            <svg class="folder-tile__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M3 6.5C3 5.67157 3.67157 5 4.5 5H9.5L11.5 7H19.5C20.3284 7 21 7.67157 21 8.5V17.5C21 18.3284 20.3284 19 19.5 19H4.5C3.67157 19 3 18.3284 3 17.5V6.5Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span class="folder-tile__name">{{ folder.name }}</span>
+          </button>
+          @if (authService.hasPermission(PERMISSIONS.folders.delete)) {
+            <button
+              type="button"
+              class="folder-tile__delete"
+              (click)="onDeleteFolder(folder)"
+              [attr.aria-label]="'Eliminar carpeta ' + folder.name"
+            >
+              ×
+            </button>
+          }
+        </div>
+      }
+    </div>
+  } @else {
+    <p class="folder-panel__empty">No hay subcarpetas acá.</p>
+  }
+</div>
+
+<div class="ui-toolbar">
+  <input
+    #searchInput
+    class="ui-input ui-search-input"
+    type="search"
+    placeholder="Buscar por título…"
+    [value]="searchTerm()"
+    (input)="onSearchInput(searchInput.value)"
+  />
+</div>
+
+<div class="ui-panel">
+  <div class="ui-table-wrap">
+    <table class="ui-table">
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Archivo</th>
+          <th>Tamaño</th>
+          <th>Departamento</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (documentsResource.isLoading()) {
+          <tr>
+            <td colspan="5" class="ui-table__loading">Cargando…</td>
+          </tr>
+        } @else if (documentsResource.error()) {
+          <tr>
+            <td colspan="5" class="ui-table__error">No se pudo cargar la lista de documentos.</td>
+          </tr>
+        } @else if (documentsResource.value(); as result) {
+          @if (!result.items.length) {
+            <tr>
+              <td colspan="5" class="ui-table__empty">
+                @if (searchTerm()) {
+                  No hay documentos que coincidan con "{{ searchTerm() }}".
+                } @else {
+                  Todavía no se subió ningún documento.
+                }
+              </td>
+            </tr>
+          }
+          @for (document of result.items; track document.id) {
+            <tr>
+              <td>{{ document.title }}</td>
+              <td>
+                <ui-badge variant="neutral">{{ document.fileName }}</ui-badge>
+              </td>
+              <td>{{ formatFileSize(document.fileSize) }}</td>
+              <td>
+                {{ document.departmentId ? (departmentNameById().get(document.departmentId) ?? '—') : '—' }}
+              </td>
+              <td class="ui-table__actions">
+                @if (authService.hasPermission(PERMISSIONS.documents.read)) {
+                  @if (canPreview(document)) {
+                    <ui-button variant="ghost" size="sm" (click)="onPreview(document)">Ver</ui-button>
+                  }
+                  <ui-button variant="ghost" size="sm" (click)="onDownload(document)">Descargar</ui-button>
+                }
+                @if (authService.hasPermission(PERMISSIONS.documents.update)) {
+                  <ui-button variant="ghost" size="sm" [routerLink]="['/documentos', document.id]">
+                    Editar
+                  </ui-button>
+                }
+                @if (authService.hasPermission(PERMISSIONS.documents.delete)) {
+                  <ui-button variant="ghost" size="sm" (click)="onDelete(document)">Eliminar</ui-button>
+                }
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (documentsResource.value(); as result) {
+    <ui-pagination [meta]="result.meta" (pageChange)="page.set($event)" />
+  }
+</div>
+
+@if (preview(); as state) {
+  <ui-modal [label]="state.document.title" [wide]="true" (close)="closePreview()">
+    <h2 class="document-preview__title">{{ state.document.title }}</h2>
+    @if (isImage(state.document)) {
+      <img [src]="state.url" class="document-preview__image" [alt]="state.document.title" />
+    } @else {
+      <ui-pdf-viewer [url]="state.url" />
+    }
+  </ui-modal>
+}
+
+@if (newFolderOpen()) {
+  <ui-modal label="Nueva carpeta" (close)="closeNewFolderModal()">
+    <h2 class="document-preview__title">Nueva carpeta</h2>
+    <form class="ui-form" (submit)="onSubmitNewFolder(); $event.preventDefault()" novalidate>
+      <ui-field
+        for="folderName"
+        label="Nombre"
+        [invalid]="newFolderForm.name().touched() && newFolderForm.name().invalid()"
+        [error]="fieldError(newFolderForm.name())"
+      >
+        <input id="folderName" type="text" class="ui-input" [formField]="newFolderForm.name" />
+      </ui-field>
+      <div class="ui-form-actions">
+        <ui-button type="submit" [loading]="creatingFolder()" [disabled]="newFolderForm().invalid()">
+          Crear carpeta
+        </ui-button>
+        <ui-button type="button" variant="ghost" (click)="closeNewFolderModal()">Cancelar</ui-button>
+      </div>
+    </form>
+  </ui-modal>
+}
