@@ -1,0 +1,230 @@
+// =============================================================================
+// DESIGN TOKENS — the absolute source of truth for Clínica Montalvo.
+// Every color, size, radius, shadow, and timing value the product uses is
+// defined here ONCE as a CSS custom property. Nothing outside this file
+// should ever hardcode a hex, px, or ms value — see DESIGN_SYSTEM.md.
+//
+// Derived from the brand board (Tablero de Marca Clínica Montalvo):
+//   Verde oscuro  #006156  → primary
+//   Verde claro   #39ADA3  → secondary / accent
+//   Blanco        #FFFFFF
+//   Negro         #000000
+//
+// Scales below are generated from those two brand colors by mixing toward
+// white (tints, 50–400) and black (shades, 600–900); 500 is the brand color
+// itself. Every pairing used as text-on-background in this file has been
+// checked against WCAG 2.2 AA (4.5:1 body text / 3:1 large text & UI
+// components) — see the contrast notes in DESIGN_SYSTEM.md.
+// =============================================================================
+
+:root {
+  color-scheme: light;
+
+  // ---------------------------------------------------------------------
+  // COLOR — raw scales
+  // ---------------------------------------------------------------------
+  // Primary — Verde oscuro (#006156)
+  --color-primary-50: #F0F6F5;
+  --color-primary-100: #E0ECEB;
+  --color-primary-200: #BDD6D3;
+  --color-primary-300: #94BDB8;
+  --color-primary-400: #57978F;
+  --color-primary-500: #006156; // brand value
+  --color-primary-600: #00554C;
+  --color-primary-700: #00463E;
+  --color-primary-800: #003630;
+  --color-primary-900: #002722;
+
+  // Secondary — Verde claro / teal (#39ADA3)
+  --color-secondary-50: #F3FAF9;
+  --color-secondary-100: #E7F5F4;
+  --color-secondary-200: #CCEAE7;
+  --color-secondary-300: #ACDDD8;
+  --color-secondary-400: #7CC9C2;
+  --color-secondary-500: #39ADA3; // brand value
+  --color-secondary-600: #32988F;
+  --color-secondary-700: #297D75;
+  --color-secondary-800: #20615B;
+  --color-secondary-900: #174541;
+
+  // Neutral — near-black/near-white scale used for text, surfaces, borders.
+  // Pure #000 / #FFF stay available as brand constants for print/logo use.
+  --color-neutral-0: #FFFFFF;
+  --color-neutral-50: #F7F9F9;
+  --color-neutral-100: #EEF2F1;
+  --color-neutral-200: #DCE3E2;
+  --color-neutral-300: #C1CBC9;
+  --color-neutral-400: #93A19E;
+  --color-neutral-500: #6B7876;
+  --color-neutral-600: #4E5957;
+  --color-neutral-700: #374140;
+  --color-neutral-800: #232B2A;
+  --color-neutral-900: #151A19;
+  --color-neutral-950: #0B0E0D;
+  --color-neutral-1000: #000000;
+
+  // Semantic status — deliberately distinct from brand green so a "success"
+  // message is never confused with a primary brand action.
+  --color-success: #1E7A46;
+  --color-success-subtle: #E8F2EC;
+  --color-on-success: #FFFFFF;
+
+  --color-warning: #9A5B00;
+  --color-warning-subtle: #F5EFE6;
+  --color-on-warning: #FFFFFF;
+
+  --color-danger: #B3261E;
+  --color-danger-subtle: #F7E9E8;
+  --color-on-danger: #FFFFFF;
+
+  --color-info: #2B5FA8;
+  --color-info-subtle: #EAEFF6;
+  --color-on-info: #FFFFFF;
+
+  // ---------------------------------------------------------------------
+  // COLOR — semantic aliases (use THESE in components, not the raw scales)
+  // ---------------------------------------------------------------------
+  --color-surface: var(--color-neutral-0);
+  --color-surface-subtle: var(--color-neutral-50);
+  --color-surface-muted: var(--color-neutral-100);
+  --color-border: var(--color-neutral-200);
+  --color-border-strong: var(--color-neutral-300);
+
+  --color-text: var(--color-neutral-900);
+  --color-text-muted: var(--color-neutral-600);
+  --color-text-inverse: var(--color-neutral-0);
+
+  --color-primary: var(--color-primary-500);
+  --color-primary-hover: var(--color-primary-600);
+  --color-primary-active: var(--color-primary-700);
+  --color-primary-subtle: var(--color-primary-50);
+  --color-on-primary: #FFFFFF; // 7.4:1 on --color-primary — verified AA/AAA
+
+  --color-secondary: var(--color-secondary-500);
+  --color-secondary-hover: var(--color-secondary-600);
+  --color-secondary-active: var(--color-secondary-700);
+  --color-secondary-subtle: var(--color-secondary-50);
+  // NOTE: white text on --color-secondary is only ~2.7:1 — fails AA.
+  // Always pair --color-secondary surfaces with dark ink text:
+  --color-on-secondary: var(--color-neutral-900);
+  // Teal as TEXT (links, accents) only in its 700 shade (4.9:1 on white):
+  --color-accent-text: var(--color-secondary-700);
+
+  --color-focus-ring: var(--color-primary-500);
+
+  // ---------------------------------------------------------------------
+  // TYPOGRAPHY
+  // ---------------------------------------------------------------------
+  // Body/UI copy: a workhorse, highly legible grotesk (matches the clean,
+  // clinical feel and is set for both fonts to fall back to it).
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
+  // Headings/wordmark-adjacent copy: bold geometric sans, close to the
+  // "MONTALVO" logotype's letterforms.
+  --font-heading: 'Poppins', var(--font-body);
+  // Decorative brand script from the board ("Bufalo"). Marketing/print
+  // headlines and pull-quotes ONLY — never body copy or interactive UI:
+  // script faces fail legibility/accessibility at small sizes and for
+  // functional text. Drop the licensed font files in public/fonts/ and
+  // uncomment the @font-face block below to activate it.
+  --font-accent: 'Bufalo', 'Segoe Script', cursive;
+
+  --font-size-xs: 0.75rem; // 12px
+  --font-size-sm: 0.875rem; // 14px
+  --font-size-base: 1rem; // 16px
+  --font-size-md: 1.125rem; // 18px
+  --font-size-lg: 1.25rem; // 20px
+  --font-size-xl: 1.5rem; // 24px
+  --font-size-2xl: 1.875rem; // 30px
+  --font-size-3xl: 2.25rem; // 36px
+  --font-size-4xl: 3rem; // 48px
+  --font-size-5xl: 3.75rem; // 60px
+
+  --line-height-tight: 1.2;
+  --line-height-snug: 1.35;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.65;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.02em;
+
+  // ---------------------------------------------------------------------
+  // SPACING — 4px base scale
+  // ---------------------------------------------------------------------
+  --space-0: 0;
+  --space-1: 0.25rem; // 4px
+  --space-2: 0.5rem; // 8px
+  --space-3: 0.75rem; // 12px
+  --space-4: 1rem; // 16px
+  --space-5: 1.5rem; // 24px
+  --space-6: 2rem; // 32px
+  --space-7: 3rem; // 48px
+  --space-8: 4rem; // 64px
+  --space-9: 6rem; // 96px
+
+  // ---------------------------------------------------------------------
+  // RADIUS — minimalist, modest rounding (clinical/trustworthy, not playful)
+  // ---------------------------------------------------------------------
+  --radius-sm: 0.375rem; // 6px
+  --radius-md: 0.625rem; // 10px
+  --radius-lg: 0.875rem; // 14px
+  --radius-xl: 1.25rem; // 20px
+  --radius-full: 999px;
+
+  // ---------------------------------------------------------------------
+  // SHADOW — soft, low-contrast elevation only
+  // ---------------------------------------------------------------------
+  --shadow-sm: 0 1px 2px rgb(11 14 13 / 6%), 0 1px 1px rgb(11 14 13 / 4%);
+  --shadow-md: 0 4px 8px rgb(11 14 13 / 8%), 0 2px 4px rgb(11 14 13 / 4%);
+  --shadow-lg: 0 12px 24px rgb(11 14 13 / 10%), 0 4px 8px rgb(11 14 13 / 4%);
+
+  // ---------------------------------------------------------------------
+  // MOTION
+  // ---------------------------------------------------------------------
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+
+  // ---------------------------------------------------------------------
+  // Z-INDEX — named layers, never a bare magic number in component code
+  // ---------------------------------------------------------------------
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-overlay: 1200;
+  --z-modal: 1300;
+  --z-popover: 1400;
+  --z-toast: 1500;
+
+  // ---------------------------------------------------------------------
+  // LAYOUT
+  // ---------------------------------------------------------------------
+  --container-max: 1200px;
+  --container-padding: var(--space-4);
+}
+
+// -----------------------------------------------------------------------------
+// Optional: "Bufalo" brand script face. Add the licensed files to
+// public/fonts/ (woff2 preferred) and uncomment to enable --font-accent.
+// -----------------------------------------------------------------------------
+// @font-face {
+//   font-family: 'Bufalo';
+//   src: url('/fonts/Bufalo.woff2') format('woff2');
+//   font-weight: 400;
+//   font-style: normal;
+//   font-display: swap;
+// }
+
+// -----------------------------------------------------------------------------
+// Dark mode is intentionally NOT enabled yet — these tokens ship a reviewed
+// light theme only. When dark mode is prioritized, add reviewed dark values
+// here as a `[data-theme="dark"]` block (plus a `prefers-color-scheme: dark`
+// media query guarded by `:root:not([data-theme="light"])`) rather than
+// flipping this on by media query alone. See DESIGN_SYSTEM.md.

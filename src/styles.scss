@@ -1,1 +1,7 @@
-/* You can add global styles to this file, and also import other style files */
+// Global styles — see src/styles/ for the design-token architecture and
+// DESIGN_SYSTEM.md for how/why. Order matters: reset → tokens → base →
+// utilities.
+@use 'styles/reset';
+@use 'styles/tokens';
+@use 'styles/base';
+@use 'styles/utilities';

@@ -1,0 +1,50 @@
+// =============================================================================
+// MIXINS — shared behaviour built on top of settings + tokens.
+// Import in any component style with:
+//   @use 'mixins' as m;
+// (works from anywhere thanks to the `stylePreprocessorOptions.includePaths`
+// entry in angular.json pointing at src/styles)
+// =============================================================================
+@use 'sass:map';
+@use 'settings' as s;
+
+/// Mobile-first media query keyed to the shared breakpoint scale.
+/// Usage: @include m.respond-to('md') { ... }
+@mixin respond-to($breakpoint) {
+  $value: map.get(s.$breakpoints, $breakpoint);
+
+  @if $value == null {
+    @error "Unknown breakpoint `#{$breakpoint}`. Available: #{map.keys(s.$breakpoints)}";
+  }
+
+  @media (min-width: $value) {
+    @content;
+  }
+}
+
+/// Hide visually while keeping content in the accessibility tree.
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/// The one focus ring the whole system uses. Never hand-roll `outline` rules.
+@mixin focus-ring {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/// Single-line ellipsis truncation.
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -1,0 +1,97 @@
+:host {
+  display: inline-block;
+}
+
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.ui-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+// Sizes
+.ui-button--sm {
+  padding-block: var(--space-1);
+  padding-inline: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+.ui-button--md {
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+  font-size: var(--font-size-base);
+}
+.ui-button--lg {
+  padding-block: var(--space-3);
+  padding-inline: var(--space-5);
+  font-size: var(--font-size-md);
+}
+
+// Variants
+.ui-button--primary {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.ui-button--primary:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+.ui-button--primary:active:not(:disabled) {
+  background-color: var(--color-primary-active);
+}
+
+.ui-button--secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-on-secondary);
+}
+.ui-button--secondary:hover:not(:disabled) {
+  background-color: var(--color-secondary-hover);
+}
+.ui-button--secondary:active:not(:disabled) {
+  background-color: var(--color-secondary-active);
+}
+
+.ui-button--ghost {
+  background-color: transparent;
+  color: var(--color-primary);
+  border-color: var(--color-border-strong);
+}
+.ui-button--ghost:hover:not(:disabled) {
+  background-color: var(--color-primary-subtle);
+}
+
+.ui-button--danger {
+  background-color: var(--color-danger);
+  color: var(--color-on-danger);
+}
+.ui-button--danger:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-danger) 85%, black);
+}
+
+.ui-button__spinner {
+  width: 1em;
+  height: 1em;
+  border-radius: var(--radius-full);
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  animation: ui-button-spin var(--duration-slow) linear infinite;
+}
+
+@keyframes ui-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

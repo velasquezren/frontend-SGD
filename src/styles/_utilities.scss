@@ -1,0 +1,57 @@
+// =============================================================================
+// UTILITIES — a deliberately small set of layout/accessibility primitives.
+// This system favors component-scoped styles over utility classes; these
+// exist only for the handful of cross-cutting needs every app has.
+// =============================================================================
+@use 'mixins' as m;
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--container-padding);
+}
+
+.visually-hidden {
+  @include m.visually-hidden;
+}
+
+// Standard "skip to content" pattern: visually hidden until focused.
+.skip-link {
+  @include m.visually-hidden;
+}
+
+.skip-link:focus {
+  position: fixed;
+  inset-block-start: var(--space-2);
+  inset-inline-start: var(--space-2);
+  width: auto;
+  height: auto;
+  padding: var(--space-2) var(--space-4);
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  z-index: var(--z-toast);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-radius: var(--radius-sm);
+}
+
+// Vertical rhythm between direct children. Override spacing with
+// `style="--stack-space: var(--space-6)"` where a section needs more room.
+.stack > * + * {
+  margin-block-start: var(--stack-space, var(--space-4));
+}
+
+// Wrapping horizontal group with consistent gap.
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cluster-space, var(--space-3));
+}
+
+.u-text-muted {
+  color: var(--color-text-muted);
+}

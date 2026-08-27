@@ -56,3 +56,34 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Use the `providedIn: 'root'` option for singleton services
 - Prefer the `@Service` decorator over `@Injectable({providedIn: 'root'})` for new singleton services (Angular v22+)
 - Use the `inject()` function instead of constructor injection
+
+## Design System (Clínica Montalvo)
+
+The full design system — brand colors, typography, spacing, verified
+contrast pairs, and component conventions — is documented in
+`DESIGN_SYSTEM.md` and implemented as CSS custom properties in
+`src/styles/_tokens.scss`. Read `DESIGN_SYSTEM.md` before building or
+styling any UI.
+
+Hard rules:
+
+- Never hardcode a color, font stack, spacing, radius, shadow, or timing
+  value in a component. Always consume the corresponding `var(--...)`
+  token from `src/styles/_tokens.scss`.
+- Use the semantic color aliases (`--color-primary`, `--color-surface`,
+  `--color-text`, `--color-on-primary`, etc.), not the raw numbered
+  scales (`--color-primary-500`), inside product components.
+- `--color-secondary` (teal) pairs with dark text (`--color-on-secondary`),
+  never white — white-on-teal fails WCAG AA contrast. Use
+  `--color-accent-text` (teal-700) when teal needs to work as text color.
+- The brand script font (`--font-accent`, "Bufalo") is for marketing/print
+  headlines only — never for interface or body copy.
+- New shared UI primitives go in `src/app/shared/ui/<name>/`, follow the
+  pattern in `src/app/shared/ui/button/`, and use `@use 'mixins' as m;` /
+  `@use 'settings' as s;` (available from any file via
+  `stylePreprocessorOptions.includePaths` in `angular.json`) rather than
+  relative-path imports.
+- No brand logo assets exist yet (intentionally left blank) — do not
+  invent or reference a logo file that hasn't been added under `public/`.
+- Dark mode is not enabled. Do not add a `prefers-color-scheme: dark`
+  override without first reviewing contrast per `DESIGN_SYSTEM.md` §8.

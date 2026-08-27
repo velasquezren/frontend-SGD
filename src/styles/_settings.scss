@@ -1,0 +1,17 @@
+// =============================================================================
+// SETTINGS — compile-time Sass values only.
+// Nothing in this file emits CSS. It exists so mixins and component styles
+// can reason about breakpoints/etc. at build time (CSS custom properties
+// can't be read inside a media query). Runtime design values (colors,
+// spacing, type, radius, shadow, motion) live in `tokens.scss` as CSS
+// custom properties — that is the single source of truth for those.
+// =============================================================================
+
+/// Breakpoints — min-width, mobile-first.
+$breakpoints: (
+  'sm': 480px,
+  'md': 768px,
+  'lg': 1024px,
+  'xl': 1280px,
+  '2xl': 1536px,
+);
