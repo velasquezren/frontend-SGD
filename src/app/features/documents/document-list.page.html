@@ -150,7 +150,14 @@
                     <ui-button variant="ghost" size="sm" (click)="onPreview(document)">Ver</ui-button>
                   }
                   <ui-button variant="ghost" size="sm" (click)="onDownload(document)">Descargar</ui-button>
-                  <ui-button variant="ghost" size="sm" (click)="shareViaWhatsapp(document)">WhatsApp</ui-button>
+                  <ui-button
+                    variant="ghost"
+                    size="sm"
+                    [loading]="sharingDocId() === document.id"
+                    (click)="shareViaWhatsapp(document)"
+                  >
+                    WhatsApp
+                  </ui-button>
                 }
                 @if (authService.hasPermission(PERMISSIONS.documents.update) && isOwnedByMe(document.departmentId)) {
                   <ui-button

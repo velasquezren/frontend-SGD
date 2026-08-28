@@ -58,11 +58,14 @@ export class DocumentListPage {
   protected readonly fieldError = fieldError;
 
   /**
-   * `?search=...` — lets a link (e.g. the WhatsApp share button below)
-   * deep-link straight to a filtered view instead of a bare "open the
-   * app and find it yourself." Binds automatically via
+   * `?search=...` — lets a link deep into a filtered view of this list
+   * (e.g. one pasted into an email or chat) land pre-filtered instead of
+   * a bare "open the app and find it yourself." Binds automatically via
    * `withComponentInputBinding()` (see `app.config.ts`); the alias keeps
-   * the URL param name independent of this field's own name.
+   * the URL param name independent of this field's own name. Not used by
+   * the WhatsApp share button below anymore — that shares the actual file
+   * now, not a link — but kept as its own small, independently useful
+   * piece (bookmarking/sharing a filtered view by any other means).
    */
   readonly searchQuery = input('', { alias: 'search' });
 
@@ -196,23 +199,68 @@ export class DocumentListPage {
   }
 
   /**
-   * WhatsApp's own "click to chat" link (`wa.me`) — no API key, no
-   * backend involvement, just a URL WhatsApp opens with the text field
-   * pre-filled; the recipient picks who to send it to. Deep-links back to
-   * this list pre-filtered by title (`?search=`, see `searchQuery` above)
-   * rather than the document's own file — a document's actual bytes sit
-   * behind `GET /documents/:id/download`, which needs the recipient's own
-   * `Authorization` header, so there is no bare URL that would work for
-   * them anyway. This is available to anyone who can already see the
-   * document (no ownership gate) — it only ever sends a link, never
-   * grants access on its own, so it carries the same read-only spirit as
-   * the "Compartir" department/user sharing feature without actually
-   * being it.
+   * The document id currently being prepared for sharing — download is
+   * async (fetches the actual file bytes first), so each row's "WhatsApp"
+   * button needs its own loading state rather than one global flag.
    */
-  protected shareViaWhatsapp(doc: DocumentFile): void {
-    const link = `${location.origin}/documentos?search=${encodeURIComponent(doc.title)}`;
-    const message = `Te comparto "${doc.title}" en SGD Montalvo: ${link}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+  protected readonly sharingDocId = signal<string | null>(null);
+
+  /**
+   * Shares the actual file, not a link to it — WhatsApp's own web
+   * integration (`wa.me`/`api.whatsapp.com`) only ever accepts pre-filled
+   * *text*; there is no public WhatsApp URL that attaches a file, by
+   * WhatsApp's own design (nothing this app can do about that). The only
+   * real way a web page hands a file to WhatsApp is the OS's native share
+   * sheet, via the Web Share API's `files` support — this fetches the
+   * document's bytes (same authenticated endpoint `onDownload` uses, see
+   * `DocumentsService.getFileBlob`), wraps them in a `File`, and lets the
+   * OS sheet open with WhatsApp as one of the apps offered (assuming it's
+   * installed — this can't target WhatsApp specifically, only "share",
+   * same as every other app using this API).
+   *
+   * Where the browser can't share files at all (`canShare` false — most
+   * desktop Firefox, and any non-HTTPS/non-localhost context), this falls
+   * back to a plain download with a toast explaining why, rather than
+   * silently reverting to the old link-only behavior the file-sharing
+   * request was specifically asking to move away from.
+   *
+   * Available to anyone who can already see the document (no ownership
+   * gate) — sending a copy of something you can already read doesn't
+   * grant anyone new access, same read-only spirit as the "Compartir"
+   * department/user sharing feature without actually being it.
+   */
+  protected async shareViaWhatsapp(doc: DocumentFile): Promise<void> {
+    this.sharingDocId.set(doc.id);
+    try {
+      const blob = await this.documentsService.getFileBlob(doc.id);
+      const file = new File([blob], doc.fileName, { type: doc.mimeType });
+
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: doc.title });
+        return;
+      }
+
+      // No file-sharing support in this browser/context — hand over the
+      // actual file the only way still available (a download) instead of
+      // falling back to a link.
+      const url = URL.createObjectURL(file);
+      try {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.fileName;
+        link.click();
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+      this.toastService.info('Este navegador no permite compartir archivos directamente. Se descargó el documento — adjuntalo desde WhatsApp manualmente.');
+    } catch (error) {
+      // The user closing the native share sheet without picking anything
+      // throws AbortError — that's a cancel, not a failure.
+      if (error instanceof Error && error.name === 'AbortError') return;
+      this.toastService.error(toApiErrorMessage(error));
+    } finally {
+      this.sharingDocId.set(null);
+    }
   }
 
   protected async onDelete(doc: DocumentFile): Promise<void> {
