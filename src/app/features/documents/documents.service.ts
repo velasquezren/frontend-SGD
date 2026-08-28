@@ -83,7 +83,7 @@ export class DocumentsService {
    * authenticated file download.
    */
   async download(id: string, fileName: string): Promise<void> {
-    const url = await this.fetchBlobUrl(id);
+    const url = URL.createObjectURL(await this.fetchBlob(id));
     try {
       const link = document.createElement('a');
       link.href = url;
@@ -101,11 +101,15 @@ export class DocumentsService {
    * (`URL.revokeObjectURL`) once the preview closes.
    */
   async getPreviewUrl(id: string): Promise<string> {
-    return this.fetchBlobUrl(id);
+    return URL.createObjectURL(await this.fetchBlob(id));
   }
 
-  private async fetchBlobUrl(id: string): Promise<string> {
-    const blob = await firstValueFrom(this.http.get(`${BASE_URL}/${id}/download`, { responseType: 'blob' }));
-    return URL.createObjectURL(blob);
+  /** The raw file bytes — used to hand an actual `File` to `navigator.share()` (see `document-list.page.ts`'s WhatsApp button), which needs the file itself, not a URL pointing at an endpoint the receiving app can't authenticate to. */
+  async getFileBlob(id: string): Promise<Blob> {
+    return this.fetchBlob(id);
+  }
+
+  private async fetchBlob(id: string): Promise<Blob> {
+    return firstValueFrom(this.http.get(`${BASE_URL}/${id}/download`, { responseType: 'blob' }));
   }
 }
