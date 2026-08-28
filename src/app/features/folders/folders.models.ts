@@ -13,7 +13,8 @@ export interface Folder {
 export interface CreateFolderInput {
   name: string;
   parentId?: string;
-  departmentId?: string;
+  /** Owning department — required since ADR 0006, see docs/adr/0006-department-scoped-visibility.md. */
+  departmentId: string;
 }
 
 /** Mirrors `backend/src/modules/folders/dto/update-folder.dto.ts`. */

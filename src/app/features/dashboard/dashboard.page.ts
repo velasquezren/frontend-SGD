@@ -1,10 +1,16 @@
 import { Component, computed, inject, resource } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { PERMISSIONS, type PermissionKey } from '../../core/auth/permissions';
+import { ROLE_LABELS } from '../../core/auth/roles';
+import { AuditLogService } from '../audit-log/audit-log.service';
+import { describeAuditLogEntry } from '../audit-log/audit-log.models';
 import { DepartmentsService } from '../departments/departments.service';
 import { DocumentsService } from '../documents/documents.service';
 import { UsersService } from '../users/users.service';
+import { UiBarChart, type BarChartDatum } from '../../shared/ui/bar-chart/bar-chart';
+import { UiSparkline } from '../../shared/ui/sparkline/sparkline';
 
 export type StepStatus = 'done' | 'next' | 'pending';
 
@@ -16,6 +22,8 @@ interface WorkflowStep {
   path: string;
   permission: PermissionKey;
 }
+
+const RECENT_ACTIVITY_PAGE_SIZE = 6;
 
 /**
  * The natural bootstrap order for a fresh clinic install: an org needs
@@ -54,14 +62,18 @@ const STEPS: WorkflowStep[] = [
 ];
 
 /**
- * Each count is its own `resource()` (Angular's reactive primitives don't
- * lend themselves to a dynamic array of resources) that skips the request
- * entirely when the user lacks the read permission — never fetch a count
- * for a step `visibleSteps()` won't even render.
+ * Each count/stat is its own `resource()` (Angular's reactive primitives
+ * don't lend themselves to a dynamic array of resources) that skips the
+ * request entirely when the user lacks the read permission — never fetch
+ * data for a section `visibleSteps()`/the metrics section won't even
+ * render. The metrics section (charts + recent activity) is additive to
+ * the original "getting started" flow above it, not a replacement — a
+ * fresh install still needs the setup guidance, an established one also
+ * wants the at-a-glance numbers.
  */
 @Component({
   selector: 'app-dashboard-page',
-  imports: [RouterLink],
+  imports: [DatePipe, RouterLink, UiBarChart, UiSparkline],
   templateUrl: './dashboard.page.html',
   styleUrl: './dashboard.page.scss',
 })
@@ -70,6 +82,10 @@ export class DashboardPage {
   private readonly departmentsService = inject(DepartmentsService);
   private readonly usersService = inject(UsersService);
   private readonly documentsService = inject(DocumentsService);
+  private readonly auditLogService = inject(AuditLogService);
+
+  protected readonly PERMISSIONS = PERMISSIONS;
+  protected readonly describe = describeAuditLogEntry;
 
   protected readonly visibleSteps = computed(() => STEPS.filter((step) => this.authService.hasPermission(step.permission)));
 
@@ -112,4 +128,42 @@ export class DashboardPage {
   private countIfAllowed(permission: PermissionKey, load: () => Promise<number>): Promise<number | null> {
     return this.authService.hasPermission(permission) ? load() : Promise.resolve(null);
   }
+
+  // ---- Metrics section --------------------------------------------------
+
+  protected readonly documentsStats = resource({
+    loader: () => (this.authService.hasPermission(PERMISSIONS.documents.read) ? this.documentsService.getStats() : Promise.resolve(null)),
+  });
+
+  protected readonly documentsByDepartment = computed<BarChartDatum[]>(
+    () => this.documentsStats.value()?.byDepartment.map((d) => ({ label: d.name, value: d.count })) ?? [],
+  );
+
+  protected readonly uploadsTrend = computed(() => this.documentsStats.value()?.uploadsLast30Days ?? []);
+
+  protected readonly usersStats = resource({
+    loader: () => (this.authService.hasPermission(PERMISSIONS.users.read) ? this.usersService.getStats() : Promise.resolve(null)),
+  });
+
+  protected readonly usersByRole = computed<BarChartDatum[]>(() => {
+    const byRole = this.usersStats.value()?.byRole;
+    if (!byRole) return [];
+    return (Object.entries(byRole) as [keyof typeof ROLE_LABELS, number][])
+      .map(([role, count]) => ({ label: ROLE_LABELS[role], value: count }))
+      .filter((d) => d.value > 0);
+  });
+
+  protected readonly recentActivity = resource({
+    loader: () =>
+      this.authService.hasPermission(PERMISSIONS.audit.read)
+        ? this.auditLogService.list({ pageSize: RECENT_ACTIVITY_PAGE_SIZE }).then((r) => r.items)
+        : Promise.resolve([]),
+  });
+
+  protected readonly hasMetricsSection = computed(
+    () =>
+      this.authService.hasPermission(PERMISSIONS.documents.read) ||
+      this.authService.hasPermission(PERMISSIONS.users.read) ||
+      this.authService.hasPermission(PERMISSIONS.audit.read),
+  );
 }

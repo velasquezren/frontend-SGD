@@ -1,0 +1,27 @@
+.profile-page__summary {
+  margin-block-end: var(--space-5);
+}
+
+.ui-profile-summary {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+
+  @media (min-width: 32rem) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  dt {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-block-end: var(--space-1);
+  }
+
+  dd {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    font-weight: var(--font-weight-medium);
+  }
+}
+

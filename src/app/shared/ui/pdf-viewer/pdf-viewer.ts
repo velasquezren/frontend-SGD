@@ -1,18 +1,36 @@
 import { Component, ElementRef, computed, effect, input, resource, signal, viewChild } from '@angular/core';
-import * as pdfjsLib from 'pdfjs-dist';
 import { UiButton } from '../button/button';
 
-// Module-level, run once: point pdf.js at its worker bundle. Angular's
-// esbuild-based builder does NOT auto-bundle an arbitrary npm package's
-// worker file via `new URL(..., import.meta.url)` the way a plain Vite app
-// would (confirmed by inspecting `dist/` after a production build — the
-// worker was missing). Instead, `angular.json`'s `assets` config copies
-// `pdfjs-dist/build/pdf.worker.min.mjs` straight into the build output
-// root, and this just points at that fixed public path — works identically
-// in `ng serve` and a production build.
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+// Type-only — erased at compile time, so referencing it here doesn't pull
+// `pdfjs-dist`'s ~340KB into whatever chunk this file ends up in. The
+// actual module is loaded at runtime by `loadPdfjs()` below.
+type PdfjsModule = typeof import('pdfjs-dist');
+type PdfDocument = Awaited<ReturnType<PdfjsModule['getDocument']>['promise']>;
 
-type PdfDocument = Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>;
+let pdfjsModulePromise: Promise<PdfjsModule> | undefined;
+
+/**
+ * Loads `pdfjs-dist` on first actual use, not at app-bundle time. It used
+ * to be a top-level `import * as pdfjsLib from 'pdfjs-dist'` — that put the
+ * whole library in whatever chunk imported `UiPdfViewer` even when no
+ * preview was ever opened, which is why `document-list-page` was the
+ * heaviest chunk in the app (449 KB raw / 112 KB transfer, confirmed via
+ * `npm run build`) despite most visits never previewing a PDF. A dynamic
+ * `import()` here makes the Angular/esbuild build split `pdfjs-dist` into
+ * its own on-demand chunk instead.
+ *
+ * `GlobalWorkerOptions.workerSrc` still points at the fixed public path
+ * `angular.json`'s `assets` config copies `pdf.worker.min.mjs` to — same
+ * reasoning as before, just set once the module actually resolves instead
+ * of at import time.
+ */
+function loadPdfjs(): Promise<PdfjsModule> {
+  pdfjsModulePromise ??= import('pdfjs-dist').then((mod) => {
+    mod.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+    return mod;
+  });
+  return pdfjsModulePromise;
+}
 
 const MIN_SCALE = 0.6;
 const MAX_SCALE = 2.6;
@@ -83,7 +101,10 @@ export class UiPdfViewer {
 
   protected readonly documentResource = resource({
     params: () => this.url(),
-    loader: ({ params: url }) => pdfjsLib.getDocument({ url }).promise,
+    loader: async ({ params: url }) => {
+      const pdfjsLib = await loadPdfjs();
+      return pdfjsLib.getDocument({ url }).promise;
+    },
   });
 
   protected readonly pageCount = computed(() => this.documentResource.value()?.numPages ?? 0);

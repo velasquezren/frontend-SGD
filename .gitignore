@@ -39,6 +39,9 @@ testem.log
 /typings
 __screenshots__/
 
+# Vercel CLI project link (org/project IDs) — created by `vercel link`, never committed
+.vercel
+
 # System files
 .DS_Store
 Thumbs.db

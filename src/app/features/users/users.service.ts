@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { API_URL } from '../../core/api/api-url';
 import type { ApiResponse } from '../../core/api/api-response';
 import type { PaginatedResponse } from '../../core/api/paginated-response';
-import type { CreateUserInput, UpdateUserInput, User } from './users.models';
+import type { CreateUserInput, UpdateUserInput, User, UserStats } from './users.models';
 
 export interface ListUsersParams {
   page?: number;
@@ -36,6 +36,12 @@ export class UsersService {
 
   async get(id: string): Promise<User> {
     const response = await firstValueFrom(this.http.get<ApiResponse<User>>(`${BASE_URL}/${id}`));
+    return response.data;
+  }
+
+  /** Admin-only (same `users:read` gate as `list()`) — powers the dashboard's users-by-role chart. */
+  async getStats(): Promise<UserStats> {
+    const response = await firstValueFrom(this.http.get<ApiResponse<UserStats>>(`${BASE_URL}/stats`));
     return response.data;
   }
 

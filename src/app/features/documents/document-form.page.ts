@@ -1,6 +1,8 @@
 import { Component, computed, inject, input, linkedSignal, resource, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormField, form, minLength, required, submit } from '@angular/forms/signals';
+import { AuthService } from '../../core/auth/auth.service';
+import { ConfirmService } from '../../core/dialogs/confirm.service';
 import { toApiErrorMessage } from '../../core/http/api-error.util';
 import { ToastService } from '../../core/notifications/toast.service';
 import { fieldError } from '../../core/utils/field-error';
@@ -31,6 +33,8 @@ export class DocumentFormPage {
   private readonly departmentsService = inject(DepartmentsService);
   private readonly foldersService = inject(FoldersService);
   private readonly toastService = inject(ToastService);
+  private readonly confirmService = inject(ConfirmService);
+  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
   readonly id = input.required<string>();
@@ -46,6 +50,9 @@ export class DocumentFormPage {
 
   protected readonly departmentsResource = resource({ loader: () => this.departmentsService.listAll() });
   protected readonly foldersResource = resource({ loader: () => this.foldersService.list() });
+  private readonly departmentNameById = computed(
+    () => new Map((this.departmentsResource.value() ?? []).map((d) => [d.id, d.name])),
+  );
 
   /** Folders flattened with a depth-based indent prefix, root-first, siblings alphabetical — so the flat `<select>` still reads as a tree. */
   protected readonly folderOptions = computed(() => {
@@ -76,15 +83,26 @@ export class DocumentFormPage {
     return {
       title: doc?.title ?? '',
       description: doc?.description ?? '',
-      departmentId: doc?.departmentId ?? '',
+      // On create, defaults to the uploader's own department — the common
+      // case needs zero extra clicks, see docs/adr/0006-*.md. Empty only
+      // if the uploader themself has no department (rare — an admin, or
+      // a user created without one); the field is still required, so
+      // that case just means picking one explicitly.
+      departmentId: doc?.departmentId ?? this.authService.user()?.departmentId ?? '',
       // On create, default to the folder we navigated in from (?folderId=…); irrelevant once `doc` exists (edit mode).
       folderId: doc?.folderId ?? this.folderId() ?? '',
     };
   });
 
+  /** The document's department *before* any edit in this session — compared against on submit to decide whether the department-change confirmation is needed. `undefined` until `existing` resolves, `null` for a create (nothing to compare against). */
+  private readonly originalDepartmentId = computed<string | null | undefined>(() =>
+    this.isEdit() ? (this.existing.value()?.departmentId ?? null) : null,
+  );
+
   protected readonly documentForm = form(this.model, (p) => {
     required(p.title, { message: 'El título es obligatorio.' });
     minLength(p.title, 2, { message: 'Debe tener al menos 2 caracteres.' });
+    required(p.departmentId, { message: 'El departamento es obligatorio.' });
   });
 
   protected readonly selectedFile = signal<File | null>(null);
@@ -119,11 +137,19 @@ export class DocumentFormPage {
 
   protected onSubmit(): void {
     submit(this.documentForm, async () => {
+      // Stated up front, at the exact moment it matters, not buried in a
+      // help page — see docs/adr/0006-department-scoped-visibility.md.
+      // Checked before touching loading/error state so declining is a
+      // true no-op.
+      if (this.isEdit() && !(await this.confirmDepartmentChangeIfAny())) {
+        return;
+      }
+
       this.serverError.set(null);
       this.submitting.set(true);
       try {
         const value = this.model();
-        const departmentId = value.departmentId || undefined;
+        const departmentId = value.departmentId;
         const folderId = value.folderId || undefined;
 
         if (this.isEdit()) {
@@ -155,6 +181,25 @@ export class DocumentFormPage {
       } finally {
         this.submitting.set(false);
       }
+    });
+  }
+
+  /**
+   * `true` (proceed) when the department wasn't touched, or the user
+   * confirms losing the old department's access. `false` aborts the
+   * submit entirely. A department that had none before (`originalDepartmentId`
+   * is `null`) never prompts — there's no prior access to lose.
+   */
+  private async confirmDepartmentChangeIfAny(): Promise<boolean> {
+    const original = this.originalDepartmentId();
+    const next = this.model().departmentId;
+    if (!original || original === next) return true;
+
+    const originalName = this.departmentNameById().get(original) ?? 'El departamento actual';
+    return this.confirmService.confirm({
+      title: 'Cambiar de departamento',
+      message: `${originalName} perderá acceso a este documento salvo que lo compartas. ¿Confirmás el cambio?`,
+      confirmLabel: 'Cambiar departamento',
     });
   }
 

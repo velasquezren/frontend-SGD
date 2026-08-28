@@ -33,6 +33,10 @@ export const PERMISSIONS = {
     update: 'folders:update',
     delete: 'folders:delete',
   },
+  /** Read-only — see `features/audit-log/`. */
+  audit: {
+    read: 'audit:read',
+  },
 } as const;
 
 type PermissionValues<T> = T extends string ? T : { [K in keyof T]: PermissionValues<T[K]> }[keyof T];

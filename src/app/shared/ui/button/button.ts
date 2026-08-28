@@ -26,6 +26,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
       [type]="type()"
       [disabled]="disabled() || loading()"
       [attr.aria-busy]="loading() || null"
+      [attr.aria-label]="ariaLabel()"
     >
       @if (loading()) {
         <span class="ui-button__spinner" aria-hidden="true"></span>
@@ -42,6 +43,16 @@ export class UiButton {
   readonly loading = input(false);
   readonly type = input<'button' | 'submit' | 'reset'>('button');
   readonly fullWidth = input(false);
+  /**
+   * A plain `aria-label="..."` written on `<ui-button>` lands on this
+   * component's *host* element by default (Angular attribute passthrough)
+   * — inert there, since the host has no ARIA role and isn't the actual
+   * interactive control. Aliased so it's still written the same way at
+   * every call site, but now actually forwarded to the inner `<button>`
+   * screen readers need it on. Every icon-only `ui-button` (no visible
+   * text label) must set this — see `pdf-viewer.ts`'s zoom controls.
+   */
+  readonly ariaLabel = input<string | null>(null, { alias: 'aria-label' });
 
   protected readonly classes = computed(
     () => `ui-button--${this.variant()} ui-button--${this.size()}${this.fullWidth() ? ' ui-button--full' : ''}`,

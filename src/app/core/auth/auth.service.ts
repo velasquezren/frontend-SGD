@@ -72,6 +72,18 @@ export class AuthService {
     this.clearSession();
   }
 
+  /**
+   * Self-service password change (`POST /auth/change-password`, see
+   * `backend/docs/RBAC.md`). The backend revokes every refresh token on
+   * success, so the *current* session's refresh token is now invalid too
+   * — clear the session locally and send the user back through `/login`
+   * rather than letting a later silent-refresh attempt fail confusingly.
+   */
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    await firstValueFrom(this.http.post(`${API_URL}/auth/change-password`, { currentPassword, newPassword }));
+    this.clearSession();
+  }
+
   private setSession(data: LoginResponseData): void {
     this.userSignal.set(data.user);
     this.accessTokenSignal.set(data.accessToken);
