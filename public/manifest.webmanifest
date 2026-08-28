@@ -1,0 +1,54 @@
+{
+  "name": "SGD Montalvo",
+  "short_name": "SGD Montalvo",
+  "description": "Sistema de Gestión Documental — Clínica Montalvo",
+  "id": "/",
+  "lang": "es",
+  "display": "standalone",
+  "orientation": "any",
+  "scope": "/",
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "theme_color": "#006156",
+  "categories": ["business", "productivity", "medical"],
+  "icons": [
+    {
+      "src": "web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Subir documento",
+      "short_name": "Subir",
+      "url": "/documentos/nuevo",
+      "description": "Subir un nuevo documento"
+    },
+    {
+      "name": "Documentos",
+      "short_name": "Documentos",
+      "url": "/documentos",
+      "description": "Ver todos los documentos"
+    }
+  ]
+}

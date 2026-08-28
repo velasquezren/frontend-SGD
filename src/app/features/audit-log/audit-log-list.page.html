@@ -1,0 +1,80 @@
+<div class="ui-page-header">
+  <h1 class="ui-page-title">Auditoría</h1>
+</div>
+
+<div class="ui-toolbar">
+  <select
+    #resourceTypeSelect
+    class="ui-input"
+    aria-label="Filtrar por tipo de recurso"
+    [value]="resourceType()"
+    (change)="resourceType.set(resourceTypeSelect.value); onFilterChange()"
+  >
+    <option value="">Todos los recursos</option>
+    @for (type of resourceTypes; track type) {
+      <option [value]="type">{{ resourceTypeLabel(type) }}</option>
+    }
+  </select>
+
+  <label class="ui-toolbar__field">
+    Desde
+    <input
+      #fromInput
+      class="ui-input"
+      type="date"
+      [value]="from()"
+      (change)="from.set(fromInput.value); onFilterChange()"
+    />
+  </label>
+
+  <label class="ui-toolbar__field">
+    Hasta
+    <input #toInput class="ui-input" type="date" [value]="to()" (change)="to.set(toInput.value); onFilterChange()" />
+  </label>
+</div>
+
+<div class="ui-panel">
+  <div class="ui-table-wrap">
+    <table class="ui-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Actividad</th>
+          <th>Recurso</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (entriesResource.isLoading()) {
+          <tr>
+            <td colspan="3" class="ui-table__loading">Cargando…</td>
+          </tr>
+        } @else if (entriesResource.error()) {
+          <tr>
+            <td colspan="3" class="ui-table__error">No se pudo cargar la auditoría.</td>
+          </tr>
+        } @else if (entriesResource.value(); as result) {
+          @if (!result.items.length) {
+            <tr>
+              <td colspan="3" class="ui-table__empty">No hay actividad registrada con estos filtros.</td>
+            </tr>
+          }
+          @for (entry of result.items; track trackEntry(entry)) {
+            <tr>
+              <td>{{ entry.createdAt | date: 'short' }}</td>
+              <td>{{ describe(entry) }}</td>
+              <td>
+                <ui-badge [variant]="resourceBadgeVariant(entry.resourceType)">
+                  {{ resourceTypeLabel(entry.resourceType) }}
+                </ui-badge>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (entriesResource.value(); as result) {
+    <ui-pagination [meta]="result.meta" (pageChange)="page.set($event)" />
+  }
+</div>

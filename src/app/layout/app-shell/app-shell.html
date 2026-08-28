@@ -2,27 +2,59 @@
   <a class="skip-link" href="#shell-main">Saltar al contenido</a>
 
   <aside class="shell__sidebar">
-    <a class="shell__brand" routerLink="/" aria-label="Ir al inicio">
-      <span class="shell__wordmark">MONTALVO</span>
-      <span class="shell__wordmark-sub">SGD</span>
-    </a>
+    <div class="shell__sidebar-header">
+      <a class="shell__brand" routerLink="/" aria-label="Ir al inicio">
+        <img ngSrc="favicon-96x96.png" width="28" height="28" class="shell__brand-logo" alt="" priority />
+        <span class="shell__wordmark">MONTALVO</span>
+        <span class="shell__wordmark-sub">SGD</span>
+      </a>
 
-    <nav class="shell__nav" aria-label="Principal">
+      <button
+        type="button"
+        class="shell__nav-toggle"
+        (click)="toggleMobileNav()"
+        [attr.aria-expanded]="mobileNavOpen()"
+        aria-controls="shell-nav"
+        [attr.aria-label]="mobileNavOpen() ? 'Cerrar menú' : 'Abrir menú'"
+      >
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          @if (mobileNavOpen()) {
+            <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
+          } @else {
+            <path d="M4 7H20M4 12H20M4 17H20" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
+          }
+        </svg>
+      </button>
+    </div>
+
+    <nav id="shell-nav" class="shell__nav" [class.shell__nav--open]="mobileNavOpen()" aria-label="Principal">
       @for (item of visibleNavItems(); track item.path) {
-        <a class="shell__nav-link" [routerLink]="item.path" routerLinkActive="shell__nav-link--active">
+        <a
+          class="shell__nav-link"
+          [routerLink]="item.path"
+          routerLinkActive="shell__nav-link--active"
+          (click)="closeMobileNav()"
+        >
           {{ item.label }}
         </a>
       }
     </nav>
   </aside>
 
+  @if (mobileNavOpen()) {
+    <div class="shell__nav-backdrop" (click)="closeMobileNav()"></div>
+  }
+
   <div class="shell__body">
     <header class="shell__topbar">
       @if (authService.user(); as user) {
-        <div class="shell__user">
+        <a class="shell__user" routerLink="/perfil" title="Ver mi perfil">
           <span class="shell__user-name">{{ user.firstName }} {{ user.lastName }}</span>
           <span class="shell__user-email">{{ user.email }}</span>
-        </div>
+        </a>
+      }
+      @if (installPromptService.canInstall()) {
+        <ui-button variant="ghost" size="sm" (click)="onInstall()">⭳ Instalar app</ui-button>
       }
       <ui-button variant="ghost" size="sm" (click)="onLogout()">Cerrar sesión</ui-button>
     </header>

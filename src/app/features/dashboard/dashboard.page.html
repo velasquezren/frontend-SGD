@@ -40,3 +40,76 @@
     </li>
   }
 </ol>
+
+@if (hasMetricsSection()) {
+  <h2 class="ui-section-title dashboard-metrics__title">Resumen</h2>
+
+  <div class="dashboard-metrics">
+    @if (authService.hasPermission(PERMISSIONS.documents.read)) {
+      <div class="ui-panel ui-panel--padded dashboard-metrics__card">
+        <h3 class="dashboard-metrics__card-title">Documentos por departamento</h3>
+        @if (documentsStats.isLoading()) {
+          <p class="ui-table__loading">Cargando…</p>
+        } @else {
+          <ui-bar-chart [data]="documentsByDepartment()" unitLabel="documentos" />
+        }
+      </div>
+    }
+
+    @if (authService.hasPermission(PERMISSIONS.users.read)) {
+      <div class="ui-panel ui-panel--padded dashboard-metrics__card">
+        <h3 class="dashboard-metrics__card-title">Usuarios por rol</h3>
+        @if (usersStats.isLoading()) {
+          <p class="ui-table__loading">Cargando…</p>
+        } @else {
+          <ui-bar-chart [data]="usersByRole()" unitLabel="usuarios" />
+        }
+      </div>
+    }
+
+    <!--
+      Full-width, its own row: both the trend line (reads better wide than
+      squeezed into half a column) and, more importantly, keeps the grid
+      above always an even number of cards — "Documentos por departamento"
+      and "Usuarios por rol" pair up with no leftover cell regardless of
+      which of the two the viewer's role grants (see PERMISSIONS gates
+      above; SOLICITANTE/REVISOR only ever see the first, ADMINISTRADOR
+      sees both).
+    -->
+    @if (authService.hasPermission(PERMISSIONS.documents.read)) {
+      <div class="ui-panel ui-panel--padded dashboard-metrics__card dashboard-metrics__card--wide">
+        <h3 class="dashboard-metrics__card-title">Subidas — últimos 30 días</h3>
+        @if (documentsStats.isLoading()) {
+          <p class="ui-table__loading">Cargando…</p>
+        } @else {
+          <ui-sparkline [data]="uploadsTrend()" />
+        }
+      </div>
+    }
+
+    @if (authService.hasPermission(PERMISSIONS.audit.read)) {
+      <div class="ui-panel ui-panel--padded dashboard-metrics__card dashboard-metrics__card--activity">
+        <div class="dashboard-metrics__card-header">
+          <h3 class="dashboard-metrics__card-title">Actividad reciente</h3>
+          <a routerLink="/auditoria" class="dashboard-metrics__link">Ver todo →</a>
+        </div>
+        @if (recentActivity.isLoading()) {
+          <p class="ui-table__loading">Cargando…</p>
+        } @else if (recentActivity.value(); as entries) {
+          @if (!entries.length) {
+            <p class="ui-table__empty">Sin actividad todavía.</p>
+          } @else {
+            <ul class="dashboard-activity">
+              @for (entry of entries; track entry.id) {
+                <li class="dashboard-activity__item">
+                  <span>{{ describe(entry) }}</span>
+                  <time [attr.datetime]="entry.createdAt">{{ entry.createdAt | date: 'short' }}</time>
+                </li>
+              }
+            </ul>
+          }
+        }
+      </div>
+    }
+  </div>
+}

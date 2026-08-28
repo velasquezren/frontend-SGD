@@ -60,6 +60,20 @@ export const routes: Routes = [
         loadComponent: () => import('./features/users/user-form.page').then((m) => m.UserFormPage),
         title: 'Usuario — SGD Montalvo',
       },
+
+      // Auditoría — read-only, no `:id` route (nothing here is ever edited).
+      {
+        path: 'auditoria',
+        loadComponent: () => import('./features/audit-log/audit-log-list.page').then((m) => m.AuditLogListPage),
+        title: 'Auditoría — SGD Montalvo',
+      },
+
+      // Mi Perfil — every authenticated user, no permission gate.
+      {
+        path: 'perfil',
+        loadComponent: () => import('./features/profile/profile.page').then((m) => m.ProfilePage),
+        title: 'Mi Perfil — SGD Montalvo',
+      },
     ],
   },
 ];

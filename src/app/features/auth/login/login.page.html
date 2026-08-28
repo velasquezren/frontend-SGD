@@ -1,6 +1,16 @@
 <div class="login-layout">
   <aside class="login-brand">
     <div class="login-brand__content">
+      <!--
+        No logo image here on purpose: the mark (favicon.svg /
+        public/*.png) is solid `#006156` with a transparent background —
+        identical to this panel's own background color (`--color-primary`,
+        see login.page.scss), so it would render invisible. It's used
+        where it actually has contrast: the app shell's sidebar (light
+        background) and the browser/OS icon surfaces (manifest, favicon,
+        apple-touch-icon — all on their own light/white backdrop). Revisit
+        if a light/white variant of the mark is ever produced.
+      -->
       <p class="login-brand__eyebrow">Clínica Montalvo</p>
       <h1 class="login-brand__wordmark">MONTALVO</h1>
       <span class="login-brand__rule" aria-hidden="true"></span>

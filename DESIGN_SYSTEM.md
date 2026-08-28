@@ -28,12 +28,23 @@ Tipografías de marca: **Bufalo** (script decorativo, para titulares de
 marketing/impresos) y una sans geométrica en negrita para el wordmark
 "MONTALVO". Ver sección 3 para cómo se tradujeron a la interfaz.
 
-**El logo se deja vacío intencionalmente.** No hay ningún archivo de marca
-en el repo todavía. Cuando lo tengas:
-- Ícono de pestaña: reemplazá `public/favicon.ico` (múltiplos de 16/32/48px).
-- Logo en la app: agregalo como SVG en `public/` (versión a color sobre
-  fondo claro y una versión monocromática en blanco para fondos oscuros/
-  `--color-primary`).
+**El logo ya existe** (agregado 2026-08-28, generado con
+realfavicongenerator.net a partir de la marca real): `public/favicon.svg`,
+`favicon.ico`, `favicon-96x96.png`, `apple-touch-icon.png`,
+`web-app-manifest-{192,512}x512.png`. Es un trazo monocromático
+`#006156` (`--color-primary-500`) sobre fondo transparente (el SVG) o
+blanco (los PNG). Usado en:
+- Ícono de pestaña/PWA: enlazado desde `index.html` (`<link rel="icon">`,
+  `apple-touch-icon`) y `public/manifest.webmanifest` — ver la sección PWA
+  de `CLAUDE.md`.
+- `layout/app-shell/`: junto al wordmark "MONTALVO" en el sidebar (fondo
+  claro, `--color-surface` — el mismo verde de la marca contrasta bien ahí).
+
+**Falta todavía** una versión monocromática en blanco: el panel de marca
+del login (`features/auth/login/`) tiene fondo `--color-primary`, el mismo
+verde que el propio logo — colocarlo ahí tal cual lo dejaría invisible
+(verde sobre verde). Ese panel se queda con el wordmark de texto solo
+hasta que exista esa variante; ver el comentario en `login.page.html`.
 
 ## 2. Color
 

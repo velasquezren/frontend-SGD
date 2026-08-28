@@ -1,0 +1,86 @@
+<ui-modal [label]="'Compartir ' + resourceName()" (close)="closed.emit()">
+  <h2 class="ui-modal-title">Compartir "{{ resourceName() }}"</h2>
+
+  <section class="share-dialog__section">
+    <h3 class="share-dialog__section-title">Compartido con</h3>
+    @if (sharesResource.isLoading()) {
+      <p class="ui-table__loading">Cargando…</p>
+    } @else if (sharesResource.value(); as shares) {
+      @if (!shares.length) {
+        <p class="share-dialog__empty">Todavía no se compartió con nadie.</p>
+      } @else {
+        <ul class="share-dialog__list">
+          @for (share of shares; track share.id) {
+            <li class="share-dialog__item">
+              <ui-badge [variant]="share.departmentId ? 'secondary' : 'neutral'">{{ labelFor(share) }}</ui-badge>
+              <button
+                type="button"
+                class="share-dialog__remove"
+                (click)="onRemove(share)"
+                [attr.aria-label]="'Dejar de compartir con ' + labelFor(share)"
+              >
+                ×
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    }
+  </section>
+
+  <section class="share-dialog__section">
+    <h3 class="share-dialog__section-title">Agregar</h3>
+
+    <div class="share-dialog__target-toggle" role="radiogroup" aria-label="Compartir con">
+      <label class="share-dialog__radio">
+        <input
+          type="radio"
+          name="targetType"
+          [checked]="targetType() === 'department'"
+          (change)="setTargetType('department')"
+        />
+        Departamento
+      </label>
+      @if (canPickUser()) {
+        <label class="share-dialog__radio">
+          <input type="radio" name="targetType" [checked]="targetType() === 'user'" (change)="setTargetType('user')" />
+          Persona
+        </label>
+      }
+    </div>
+
+    @if (targetType() === 'department') {
+      <select
+        #deptSelect
+        class="ui-input"
+        aria-label="Departamento a compartir"
+        [value]="selectedDepartmentId()"
+        (change)="selectedDepartmentId.set(deptSelect.value)"
+      >
+        <option value="">Elegí un departamento…</option>
+        @for (department of shareableDepartments(); track department.id) {
+          <option [value]="department.id">{{ department.name }}</option>
+        }
+      </select>
+    } @else {
+      <select
+        #userSelect
+        class="ui-input"
+        aria-label="Persona a compartir"
+        [value]="selectedUserId()"
+        (change)="selectedUserId.set(userSelect.value)"
+      >
+        <option value="">Elegí una persona…</option>
+        @for (user of shareableUsers(); track user.id) {
+          <option [value]="user.id">{{ user.firstName }} {{ user.lastName }} ({{ user.email }})</option>
+        }
+      </select>
+    }
+
+    <div class="ui-form-actions">
+      <ui-button type="button" size="sm" [loading]="sharing()" [disabled]="!canSubmit()" (click)="onAdd()">
+        Compartir
+      </ui-button>
+    </div>
+  </section>
+</ui-modal>

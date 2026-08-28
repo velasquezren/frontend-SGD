@@ -1,0 +1,54 @@
+:host {
+  display: block;
+}
+
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.bar-chart__row {
+  display: grid;
+  grid-template-columns: minmax(6rem, 10rem) 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.bar-chart__label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar-chart__track {
+  block-size: 0.625rem;
+  background-color: var(--color-surface-subtle);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.bar-chart__fill {
+  block-size: 100%;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-full);
+  transition: inline-size var(--duration-base) ease;
+}
+
+.bar-chart__value {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  min-inline-size: 2ch;
+  text-align: end;
+}
+
+.bar-chart__empty {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--space-5) 0;
+  margin: 0;
+}

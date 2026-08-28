@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { API_URL } from '../../core/api/api-url';
 import type { ApiResponse } from '../../core/api/api-response';
 import type { PaginatedResponse } from '../../core/api/paginated-response';
-import type { DocumentFile, UpdateDocumentInput } from './documents.models';
+import type { DocumentFile, DocumentStats, UpdateDocumentInput } from './documents.models';
 
 export interface ListDocumentsParams {
   page?: number;
@@ -17,7 +17,8 @@ export interface ListDocumentsParams {
 export interface UploadDocumentInput {
   title: string;
   description?: string;
-  departmentId?: string;
+  /** Owning department — required since ADR 0006, see docs/adr/0006-department-scoped-visibility.md. */
+  departmentId: string;
   folderId?: string;
   file: File;
 }
@@ -47,13 +48,19 @@ export class DocumentsService {
     return response.data;
   }
 
+  /** Powers the dashboard's metrics section — same `documents:read` permission as `list()`, no separate gate. */
+  async getStats(): Promise<DocumentStats> {
+    const response = await firstValueFrom(this.http.get<ApiResponse<DocumentStats>>(`${BASE_URL}/stats`));
+    return response.data;
+  }
+
   /** Multipart upload — don't set a Content-Type header manually, the browser adds the multipart boundary for `FormData` itself; `authInterceptor` only adds `Authorization`, so this stays compatible. */
   async upload(input: UploadDocumentInput): Promise<DocumentFile> {
     const formData = new FormData();
     formData.append('file', input.file);
     formData.append('title', input.title);
     if (input.description) formData.append('description', input.description);
-    if (input.departmentId) formData.append('departmentId', input.departmentId);
+    formData.append('departmentId', input.departmentId);
     if (input.folderId) formData.append('folderId', input.folderId);
 
     const response = await firstValueFrom(this.http.post<ApiResponse<DocumentFile>>(BASE_URL, formData));

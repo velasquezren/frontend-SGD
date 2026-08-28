@@ -18,11 +18,13 @@
 
 // ---------------------------------------------------------------------------
 // Sidebar — quiet chrome, used all day; the one bold brand moment is login.
-// Below `md` it collapses into a horizontal top bar (brand + a scrollable
-// nav row) instead of disappearing — no hamburger/drawer built yet, but
-// every module stays reachable on a phone.
+// Below `md`, `.shell__sidebar-header` (brand + hamburger) is what's always
+// visible; `.shell__nav` itself becomes a closed dropdown, opened by the
+// toggle button, overlaying the page on a backdrop rather than pushing
+// content down or cramming every link into one scrollable row.
 // ---------------------------------------------------------------------------
 .shell__sidebar {
+  position: relative; // anchors `.shell__nav`'s dropdown positioning below `md`
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
@@ -40,9 +42,52 @@
   }
 }
 
+.shell__sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  @include m.respond-to('md') {
+    justify-content: flex-start;
+  }
+}
+
+.shell__nav-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  flex-shrink: 0;
+
+  svg {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+  }
+
+  &:hover {
+    background-color: var(--color-surface-subtle);
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+
+  // The whole point of this button — irrelevant once the sidebar is
+  // always-visible.
+  @include m.respond-to('md') {
+    display: none;
+  }
+}
+
 .shell__brand {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-2);
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-sm);
@@ -55,6 +100,11 @@
   &:focus-visible {
     @include m.focus-ring;
   }
+}
+
+.shell__brand-logo {
+  flex-shrink: 0;
+  display: block;
 }
 
 .shell__wordmark {
@@ -73,19 +123,55 @@
 }
 
 .shell__nav {
-  display: flex;
-  flex-direction: row;
+  // Closed by default below `md`: an absolutely-positioned dropdown panel,
+  // not part of document flow, so it overlays the page instead of pushing
+  // `.shell__content` down when opened.
+  display: none;
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline: var(--space-4);
+  flex-direction: column;
   gap: var(--space-1);
-  overflow-x: auto;
+  padding: var(--space-2);
+  margin-block-start: var(--space-2);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  // Above `--z-overlay` (the backdrop right below) — this panel is a
+  // drawer sitting on top of it, not a plain dropdown menu.
+  z-index: var(--z-modal);
+
+  &.shell__nav--open {
+    display: flex;
+  }
+
+  // flex-direction/gap are unchanged from the base rule above — only what
+  // actually differs at `md`+ (no longer a positioned dropdown panel).
+  @include m.respond-to('md') {
+    display: flex;
+    position: static;
+    padding: 0;
+    margin-block-start: 0;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+  }
+}
+
+.shell__nav-backdrop {
+  position: fixed;
+  inset: 0;
+  // Same treatment as `ui-modal`'s own backdrop — one consistent overlay look app-wide.
+  background-color: color-mix(in srgb, var(--color-neutral-1000) 45%, transparent);
+  z-index: var(--z-overlay);
 
   @include m.respond-to('md') {
-    flex-direction: column;
-    overflow-x: visible;
+    display: none;
   }
 }
 
 .shell__nav-link {
-  flex-shrink: 0;
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   border-inline-start: 3px solid transparent;
@@ -135,6 +221,19 @@
   display: flex;
   flex-direction: column;
   line-height: var(--line-height-tight);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-1) var(--space-2);
+  margin: calc(var(--space-1) * -1) calc(var(--space-2) * -1);
+
+  &:hover {
+    background-color: var(--color-surface-subtle);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
 }
 
 .shell__user-name {

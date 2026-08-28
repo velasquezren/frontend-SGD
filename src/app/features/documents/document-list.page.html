@@ -55,8 +55,21 @@
               />
             </svg>
             <span class="folder-tile__name">{{ folder.name }}</span>
+            @if (isSharedNotOwned(folder.departmentId)) {
+              <ui-badge variant="secondary">Compartido</ui-badge>
+            }
           </button>
-          @if (authService.hasPermission(PERMISSIONS.folders.delete)) {
+          @if (authService.hasPermission(PERMISSIONS.folders.update) && isOwnedByMe(folder.departmentId)) {
+            <button
+              type="button"
+              class="folder-tile__share"
+              (click)="openShareDialog({ resourceType: 'folders', resourceId: folder.id, resourceName: folder.name, ownerDepartmentId: folder.departmentId })"
+              [attr.aria-label]="'Compartir carpeta ' + folder.name"
+            >
+              ⇄
+            </button>
+          }
+          @if (authService.hasPermission(PERMISSIONS.folders.delete) && isOwnedByMe(folder.departmentId)) {
             <button
               type="button"
               class="folder-tile__delete"
@@ -127,6 +140,9 @@
               <td>{{ formatFileSize(document.fileSize) }}</td>
               <td>
                 {{ document.departmentId ? (departmentNameById().get(document.departmentId) ?? '—') : '—' }}
+                @if (isSharedNotOwned(document.departmentId)) {
+                  <ui-badge variant="secondary">Compartido</ui-badge>
+                }
               </td>
               <td class="ui-table__actions">
                 @if (authService.hasPermission(PERMISSIONS.documents.read)) {
@@ -134,8 +150,18 @@
                     <ui-button variant="ghost" size="sm" (click)="onPreview(document)">Ver</ui-button>
                   }
                   <ui-button variant="ghost" size="sm" (click)="onDownload(document)">Descargar</ui-button>
+                  <ui-button variant="ghost" size="sm" (click)="shareViaWhatsapp(document)">WhatsApp</ui-button>
                 }
-                @if (authService.hasPermission(PERMISSIONS.documents.update)) {
+                @if (authService.hasPermission(PERMISSIONS.documents.update) && isOwnedByMe(document.departmentId)) {
+                  <ui-button
+                    variant="ghost"
+                    size="sm"
+                    (click)="openShareDialog({ resourceType: 'documents', resourceId: document.id, resourceName: document.title, ownerDepartmentId: document.departmentId })"
+                  >
+                    Compartir
+                  </ui-button>
+                }
+                @if (authService.hasPermission(PERMISSIONS.documents.update) && isOwnedByMe(document.departmentId)) {
                   <ui-button variant="ghost" size="sm" [routerLink]="['/documentos', document.id]">
                     Editar
                   </ui-button>
@@ -179,6 +205,20 @@
       >
         <input id="folderName" type="text" class="ui-input" [formField]="newFolderForm.name" />
       </ui-field>
+      <ui-field
+        for="folderDepartmentId"
+        label="Departamento"
+        hint="Solo este departamento (y Administrador) podrá verla, salvo que la compartas."
+        [invalid]="newFolderForm.departmentId().touched() && newFolderForm.departmentId().invalid()"
+        [error]="fieldError(newFolderForm.departmentId())"
+      >
+        <select id="folderDepartmentId" class="ui-input" [formField]="newFolderForm.departmentId">
+          <option value="">Elegí un departamento…</option>
+          @for (department of departmentsResource.value(); track department.id) {
+            <option [value]="department.id">{{ department.name }}</option>
+          }
+        </select>
+      </ui-field>
       <div class="ui-form-actions">
         <ui-button type="submit" [loading]="creatingFolder()" [disabled]="newFolderForm().invalid()">
           Crear carpeta
@@ -187,4 +227,14 @@
       </div>
     </form>
   </ui-modal>
+}
+
+@if (sharingTarget(); as target) {
+  <app-share-dialog
+    [resourceType]="target.resourceType"
+    [resourceId]="target.resourceId"
+    [resourceName]="target.resourceName"
+    [ownerDepartmentId]="target.ownerDepartmentId"
+    (closed)="closeShareDialog()"
+  />
 }

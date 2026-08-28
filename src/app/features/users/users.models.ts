@@ -33,3 +33,9 @@ export interface UpdateUserInput {
   role?: UserRoleValue;
   isActive?: boolean;
 }
+
+/** Mirrors `UserStats` from `backend/src/modules/users/users.service.ts`. Powers the dashboard's users-by-role chart (admin only, same as the rest of this module). */
+export interface UserStats {
+  total: number;
+  byRole: Record<UserRoleValue, number>;
+}

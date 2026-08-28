@@ -1,7 +1,9 @@
+import { environment } from '../../../environments/environment';
+
 /**
- * Backend base URL for local development. No `environment.ts` files exist
- * yet in this project (see `angular.json` — no `fileReplacements`
- * configured) — this constant is the single place to change until proper
- * per-environment config is introduced.
+ * Backend base URL — `environment.ts` (dev, `ng serve`/`ng test`) or
+ * `environment.production.ts` (swapped in for `ng build` via
+ * `fileReplacements` in `angular.json`). Edit the value there, not here —
+ * see `environment.production.ts`'s doc-comment before deploying.
  */
-export const API_URL = 'http://localhost:3000/api';
+export const API_URL = environment.apiUrl;

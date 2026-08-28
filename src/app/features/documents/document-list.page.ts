@@ -1,4 +1,4 @@
-import { Component, computed, inject, resource, signal } from '@angular/core';
+import { Component, computed, inject, input, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormField, form, minLength, required, submit } from '@angular/forms/signals';
 import { AuthService } from '../../core/auth/auth.service';
@@ -12,6 +12,7 @@ import { formatFileSize } from '../../core/utils/format-file-size';
 import { DepartmentsService } from '../departments/departments.service';
 import type { Folder } from '../folders/folders.models';
 import { FoldersService } from '../folders/folders.service';
+import { ShareDialog } from '../sharing/share-dialog';
 import { UiBadge } from '../../shared/ui/badge/badge';
 import { UiButton } from '../../shared/ui/button/button';
 import { UiField } from '../../shared/ui/field/field';
@@ -23,6 +24,14 @@ import { DocumentsService } from './documents.service';
 
 const PAGE_SIZE = 20;
 
+/** What's open in the "Compartir" dialog — a document or a folder, same component either way (see `ShareDialog`). */
+interface SharingTarget {
+  resourceType: 'documents' | 'folders';
+  resourceId: string;
+  resourceName: string;
+  ownerDepartmentId: string | null;
+}
+
 /** Mime types the preview modal can actually render — everything else only gets a download button. */
 const PREVIEWABLE_MIME_TYPES = new Set(['application/pdf', 'image/png', 'image/jpeg']);
 
@@ -33,7 +42,7 @@ interface PreviewState {
 
 @Component({
   selector: 'app-document-list-page',
-  imports: [FormField, RouterLink, UiBadge, UiButton, UiField, UiModal, UiPagination, UiPdfViewer],
+  imports: [FormField, RouterLink, ShareDialog, UiBadge, UiButton, UiField, UiModal, UiPagination, UiPdfViewer],
   templateUrl: './document-list.page.html',
   styleUrl: './document-list.page.scss',
 })
@@ -48,8 +57,17 @@ export class DocumentListPage {
   protected readonly formatFileSize = formatFileSize;
   protected readonly fieldError = fieldError;
 
-  protected readonly searchTerm = signal('');
-  private readonly search = signal('');
+  /**
+   * `?search=...` — lets a link (e.g. the WhatsApp share button below)
+   * deep-link straight to a filtered view instead of a bare "open the
+   * app and find it yourself." Binds automatically via
+   * `withComponentInputBinding()` (see `app.config.ts`); the alias keeps
+   * the URL param name independent of this field's own name.
+   */
+  readonly searchQuery = input('', { alias: 'search' });
+
+  protected readonly searchTerm = signal(this.searchQuery());
+  private readonly search = signal(this.searchQuery());
   protected readonly page = signal(1);
 
   private readonly debouncedSearch = debounce((value: string) => {
@@ -103,7 +121,8 @@ export class DocumentListPage {
       }),
   });
 
-  private readonly departmentsResource = resource({ loader: () => this.departmentsService.listAll() });
+  // `protected`, not `private`: the new-folder modal's department `<select>` reads this directly (the name-lookup map below isn't enough there — it needs the full list to render options).
+  protected readonly departmentsResource = resource({ loader: () => this.departmentsService.listAll() });
 
   protected readonly departmentNameById = computed(() => {
     const map = new Map<string, string>();
@@ -114,14 +133,35 @@ export class DocumentListPage {
   });
 
   protected readonly preview = signal<PreviewState | null>(null);
+  protected readonly sharingTarget = signal<SharingTarget | null>(null);
+
+  /** The folder currently being browsed, if any — used to default a new subfolder's department to its parent's, and read by the "Compartir"/ownership checks below. */
+  private readonly currentFolder = computed(() =>
+    this.currentFolderId() ? (this.foldersById().get(this.currentFolderId()!) ?? null) : null,
+  );
 
   protected readonly newFolderOpen = signal(false);
-  private readonly newFolderModel = signal({ name: '' });
+  private readonly newFolderModel = signal({ name: '', departmentId: '' });
   protected readonly newFolderForm = form(this.newFolderModel, (p) => {
     required(p.name, { message: 'El nombre es obligatorio.' });
     minLength(p.name, 2, { message: 'Debe tener al menos 2 caracteres.' });
+    required(p.departmentId, { message: 'El departamento es obligatorio.' });
   });
   protected readonly creatingFolder = signal(false);
+
+  /** Own department, or ADMINISTRADOR — the same rule `SharingService.isOwner` enforces server-side, mirrored here purely to decide what to render (the server is still the real gate). */
+  protected isOwnedByMe(departmentId: string | null): boolean {
+    const user = this.authService.user();
+    if (!user) return false;
+    return user.role === 'ADMINISTRADOR' || (departmentId !== null && departmentId === user.departmentId);
+  }
+
+  /** Shows a "Compartido" badge — visible in the list, but not through direct department ownership, so it must be here via a share. Never true for ADMINISTRADOR (they see everything regardless, the badge would be meaningless). */
+  protected isSharedNotOwned(departmentId: string | null): boolean {
+    const user = this.authService.user();
+    if (!user || user.role === 'ADMINISTRADOR') return false;
+    return departmentId !== user.departmentId;
+  }
 
   protected onSearchInput(value: string): void {
     this.searchTerm.set(value);
@@ -155,6 +195,26 @@ export class DocumentListPage {
     await this.documentsService.download(doc.id, doc.fileName);
   }
 
+  /**
+   * WhatsApp's own "click to chat" link (`wa.me`) — no API key, no
+   * backend involvement, just a URL WhatsApp opens with the text field
+   * pre-filled; the recipient picks who to send it to. Deep-links back to
+   * this list pre-filtered by title (`?search=`, see `searchQuery` above)
+   * rather than the document's own file — a document's actual bytes sit
+   * behind `GET /documents/:id/download`, which needs the recipient's own
+   * `Authorization` header, so there is no bare URL that would work for
+   * them anyway. This is available to anyone who can already see the
+   * document (no ownership gate) — it only ever sends a link, never
+   * grants access on its own, so it carries the same read-only spirit as
+   * the "Compartir" department/user sharing feature without actually
+   * being it.
+   */
+  protected shareViaWhatsapp(doc: DocumentFile): void {
+    const link = `${location.origin}/documentos?search=${encodeURIComponent(doc.title)}`;
+    const message = `Te comparto "${doc.title}" en SGD Montalvo: ${link}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+  }
+
   protected async onDelete(doc: DocumentFile): Promise<void> {
     const confirmed = await this.confirmService.confirm({
       title: 'Eliminar documento',
@@ -184,7 +244,11 @@ export class DocumentListPage {
   }
 
   protected openNewFolderModal(): void {
-    this.newFolderModel.set({ name: '' });
+    // Defaults to the folder being browsed's own department when creating
+    // a subfolder (a subfolder naturally belongs with its parent), else
+    // the caller's own department.
+    const defaultDepartmentId = this.currentFolder()?.departmentId ?? this.authService.user()?.departmentId ?? '';
+    this.newFolderModel.set({ name: '', departmentId: defaultDepartmentId });
     this.newFolderOpen.set(true);
   }
 
@@ -197,7 +261,8 @@ export class DocumentListPage {
       this.creatingFolder.set(true);
       try {
         const parentId = this.currentFolderId();
-        await this.foldersService.create({ name: this.newFolderModel().name, parentId: parentId ?? undefined });
+        const { name, departmentId } = this.newFolderModel();
+        await this.foldersService.create({ name, departmentId, parentId: parentId ?? undefined });
         this.toastService.success('Carpeta creada.');
         this.newFolderOpen.set(false);
         this.foldersResource.reload();
@@ -207,6 +272,14 @@ export class DocumentListPage {
         this.creatingFolder.set(false);
       }
     });
+  }
+
+  protected openShareDialog(target: SharingTarget): void {
+    this.sharingTarget.set(target);
+  }
+
+  protected closeShareDialog(): void {
+    this.sharingTarget.set(null);
   }
 
   protected async onDeleteFolder(folder: Folder): Promise<void> {

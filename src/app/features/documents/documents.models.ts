@@ -21,3 +21,10 @@ export interface UpdateDocumentInput {
   departmentId?: string;
   folderId?: string;
 }
+
+/** Mirrors `DocumentStats` from `backend/src/modules/documents/documents.service.ts`. Powers the dashboard's metrics section. */
+export interface DocumentStats {
+  total: number;
+  byDepartment: { departmentId: string | null; name: string; count: number }[];
+  uploadsLast30Days: { date: string; count: number }[];
+}

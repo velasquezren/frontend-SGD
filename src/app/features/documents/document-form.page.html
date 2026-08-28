@@ -53,9 +53,15 @@
         <textarea id="description" class="ui-input" rows="3" [formField]="documentForm.description"></textarea>
       </ui-field>
 
-      <ui-field for="departmentId" label="Departamento (opcional)">
+      <ui-field
+        for="departmentId"
+        label="Departamento"
+        hint="Solo este departamento (y Administrador) podrá verlo, salvo que lo compartas."
+        [invalid]="documentForm.departmentId().touched() && documentForm.departmentId().invalid()"
+        [error]="fieldError(documentForm.departmentId())"
+      >
         <select id="departmentId" class="ui-input" [formField]="documentForm.departmentId">
-          <option value="">Sin departamento</option>
+          <option value="">Elegí un departamento…</option>
           @for (department of departmentsResource.value(); track department.id) {
             <option [value]="department.id">{{ department.name }}</option>
           }

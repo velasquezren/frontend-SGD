@@ -1,21 +1,43 @@
 <!doctype html>
 <html lang="es">
-<head>
-  <meta charset="utf-8">
-  <title>Clínica Montalvo</title>
-  <meta name="description" content="Sistema de gestión — Clínica Montalvo">
-  <meta name="theme-color" content="#006156">
-  <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap"
-    rel="stylesheet"
-  >
-</head>
-<body>
-  <app-root></app-root>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Clínica Montalvo</title>
+    <meta name="description" content="Sistema de gestión — Clínica Montalvo" />
+    <meta name="theme-color" content="#006156" />
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!--
+      Icon set generated from the brand mark (favicon/ at the workspace
+      root) via realfavicongenerator.net — favicon.svg first (modern
+      browsers prefer a scalable icon over the .ico), .ico as the
+      universal fallback, apple-touch-icon for iOS home-screen/Safari tab
+      preview (Safari doesn't read the manifest's icons array for this).
+      The 192/512 PNGs used for the manifest itself live alongside these,
+      referenced from manifest.webmanifest, not from here.
+    -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+
+    <!-- iOS home-screen install — Safari ignores manifest display/name, needs these explicitly. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="SGD Montalvo" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="manifest" href="manifest.webmanifest" />
+  </head>
+  <body>
+    <app-root></app-root>
+    <noscript>Please enable JavaScript to continue using this application.</noscript>
+  </body>
 </html>

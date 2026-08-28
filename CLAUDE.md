@@ -83,10 +83,68 @@ Hard rules:
   `@use 'settings' as s;` (available from any file via
   `stylePreprocessorOptions.includePaths` in `angular.json`) rather than
   relative-path imports.
-- No brand logo assets exist yet (intentionally left blank) — do not
-  invent or reference a logo file that hasn't been added under `public/`.
+- No charting library (Chart.js, ngx-charts, ...) — `shared/ui/bar-chart/`
+  and `shared/ui/sparkline/` are small, hand-built DOM/SVG components that
+  consume design tokens directly (see the dashboard for both in use).
+  They exist because a canvas-based library brings its own color/theming
+  system, which fights the token-only rule above, and because the app's
+  chart needs are genuinely simple (a handful of bars, one trend line).
+  Reach for the same approach — not a new dependency — the next time a
+  screen needs a chart, unless the shape of the data actually outgrows
+  what a bar/line can show.
+- Brand logo assets live in `public/` (`favicon.svg`/`.ico`,
+  `favicon-96x96.png`, `apple-touch-icon.png`,
+  `web-app-manifest-{192,512}x512.png`) — see `DESIGN_SYSTEM.md` §1 for
+  where each is used and the still-missing white/light variant for dark
+  backgrounds. Don't regenerate or replace these without going through
+  the same source (realfavicongenerator.net from the real brand mark).
 - Dark mode is not enabled. Do not add a `prefers-color-scheme: dark`
   override without first reviewing contrast per `DESIGN_SYSTEM.md` §8.
+
+## PWA (installable app)
+
+Set up via `ng add @angular/pwa` (added `@angular/service-worker`,
+`ngsw-config.json`, `serviceWorker: "ngsw-config.json"` on the
+`production` build configuration in `angular.json`,
+`provideServiceWorker('ngsw-worker.js', { enabled: !isDevMode(), ...
+})` in `app.config.ts`) — that's the standard Angular PWA path, don't
+hand-roll service worker registration.
+
+- **`ngsw-config.json`** caches the app shell (JS/CSS/HTML, prefetch) and
+  static assets (images/fonts, lazy) for fast repeat loads and offline
+  installability. **Deliberately no `dataGroups` for `/api/**`** — this is
+  a clinic document system; showing a stale cached document list/detail
+  when the network is actually reachable is a correctness risk worse than
+  a failed request, and `core/http/api-error.util.ts` already turns a
+  network failure into a clear message (`error.status === 0`). If offline
+  data access is ever genuinely needed, scope a `dataGroups` entry
+  narrowly (read-only list endpoints, explicitly excluding
+  `/api/documents/*/download` — those can be tens of MB each) rather than
+  a blanket `/api/**` freshness group.
+- **`core/pwa/pwa-update.service.ts`** (`PwaUpdateService`) — polls
+  `SwUpdate.checkForUpdate()` every 6h once the app is stable, and on a
+  `VERSION_READY` event asks via the existing `ConfirmService` before
+  reloading (never a silent auto-reload — see its doc-comment).
+- **`core/pwa/install-prompt.service.ts`** (`InstallPromptService`) —
+  captures `beforeinstallprompt`, exposes `canInstall()` /
+  `promptInstall()`; `AppShell`'s topbar shows an "Instalar app" button
+  gated by `canInstall()`. iOS/Safari never fires that event (platform
+  limitation, not a bug) — the button simply never appears there.
+- Both services are `providedIn: 'root'` but do their real work in the
+  constructor, so they're `inject()`-ed once in `App` (`app.ts`) purely to
+  force early instantiation — see the comment there before assuming
+  they're unused.
+- **`public/manifest.webmanifest` is hand-maintained**, not the one
+  `ng add @angular/pwa` generates by default (that one used placeholder
+  Angular icons) — if re-running `ng add @angular/pwa` for a future
+  Angular major, restore this file's real content (name/icons/shortcuts)
+  and delete any regenerated `public/icons/` placeholder set afterward.
+- **The service worker only activates in a production build** — `ng
+  serve` never registers one (`enabled: !isDevMode()`). To actually test
+  install/update behavior locally: `ng build`, then serve
+  `dist/frontend/browser` with any static file server (e.g.
+  `npx http-server dist/frontend/browser -p 4300`) and hit that, not
+  `ng serve`'s port.
 
 ## Application architecture (established patterns — follow, don't reinvent)
 
@@ -99,6 +157,14 @@ multipart upload and blob download/preview). There is no `features/roles/`
 the Usuarios form, not their own resource. See
 `../backend/docs/adr/0005-fixed-roles.md` before assuming a "Roles" screen
 should exist.
+
+Two features deliberately don't fit the list/form pair: `features/audit-log/`
+is list-only (no form page — nothing there is ever created/edited by a
+user, see `backend/docs/RBAC.md`'s `audit:read` row), and
+`features/profile/` is a single page with no list at all (there's exactly
+one record, the caller's own — self-service password change via
+`POST /auth/change-password`, added to `AuthService`, not a new module,
+since it's an auth action, not a resource).
 
 ```
 features/<name>/
